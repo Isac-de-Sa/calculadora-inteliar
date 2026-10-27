@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculadora Inteliar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: painel de configuração em colunas por módulo + resumo fixo à direita (empilha no celular) */
+:root{
+  --bg:#f3f5f0; --surface:#ffffff; --surface-2:#eaefe4; --line:#d3dccb;
+  --fg:#1d2618; --muted:#5d6b55;
+  --brand:#4f8a24; --brand-strong:#3c6c19; --brand-soft:#e1edd3;
+  --amber:#e8a600; --amber-soft:#fff3cf; --amber-fg:#6b4c00;
+  --danger:#b3261e; --on-brand:#ffffff;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141a11; --surface:#1c2418; --surface-2:#222c1d; --line:#344230;
+  --fg:#e6ecdf; --muted:#9fae95;
+  --brand:#7fbf4a; --brand-strong:#9bd466; --brand-soft:#263a1a;
+  --amber:#f2bb2b; --amber-soft:#3a2f10; --amber-fg:#f6d47a;
+  --danger:#ff8a80; --on-brand:#10170c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a11; --surface:#1c2418; --surface-2:#222c1d; --line:#344230;
+  --fg:#e6ecdf; --muted:#9fae95;
+  --brand:#7fbf4a; --brand-strong:#9bd466; --brand-soft:#263a1a;
+  --amber:#f2bb2b; --amber-soft:#3a2f10; --amber-fg:#f6d47a;
+  --danger:#ff8a80; --on-brand:#10170c; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:.01em}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* Header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:16px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand .mark{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.22em;color:var(--brand)}
+.brand h1{font-size:clamp(26px,4vw,36px);font-weight:700}
+.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:10px;flex-wrap:wrap}
+.tabs button{border:0;background:transparent;padding:8px 14px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* Project fields */
+.proj{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:15px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--fg);width:100%}
+textarea{resize:vertical;min-height:60px}
+
+/* Main grid */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
+.modules{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.mod{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.mod>header{background:var(--brand);color:var(--on-brand);padding:10px 14px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mod>header h2{font-size:20px;font-weight:700}
+.mod>header .sub{font-family:var(--f-mono);font-size:12px;opacity:.9}
+.blk{padding:12px 14px;display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line)}
+.blk:first-of-type{border-top:0}
+.blk-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px}
+.kind{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:4px}
+.kind.pad{background:var(--brand-soft);color:var(--brand-strong)}
+.kind.cus{background:var(--amber-soft);color:var(--amber-fg)}
+.blk-h .cat{font-weight:600;font-size:14px}
+.blk-h .rule{margin-left:auto;font-size:12px;color:var(--muted)}
+.blk-tools{display:flex;gap:10px;margin-top:2px}
+.link{background:none;border:0;padding:0;color:var(--brand-strong);font-size:13px;font-weight:600;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+.item{display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:8px;padding:5px 6px;border-radius:6px;cursor:pointer}
+.item:hover{background:var(--surface-2)}
+.item input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand);margin:0;cursor:pointer}
+.item .nm{min-width:0;overflow-wrap:anywhere}
+.item .pr{font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+.item.on .pr{color:var(--fg)}
+.item .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px}
+.item.extra{grid-template-columns:20px minmax(0,1fr) auto auto}
+.tag-x{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--amber-fg);background:var(--amber-soft);border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:1px}
+.addrow{display:flex;gap:6px;margin-top:4px}
+.addrow input{flex:1;min-width:0;padding:6px 8px;font-size:14px}
+.addrow button{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 10px;font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* Summary */
+.sum{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+@media (max-width:980px){.sum{position:static}}
+.sum .tot{background:var(--fg);color:var(--bg);padding:16px}
+.sum .tot .lbl{font-family:var(--f-display);font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+.sum .tot .val{font-family:var(--f-mono);font-size:clamp(28px,3.4vw,34px);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:2px}
+.sum .tot .meta{font-size:13px;opacity:.75;margin-top:4px}
+.lines{padding:12px 16px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--line)}
+.ln{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.ln span:last-child{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ln.sm{font-size:13px;color:var(--muted);padding-left:10px}
+.ln.dis span:last-child{color:var(--danger)}
+.disc{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+.disc label{font-weight:600;font-size:14px;flex:1}
+.disc input{width:90px;text-align:right}
+.acts{padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:10px 12px;font-weight:600;cursor:pointer;text-align:center}
+.btn:hover{border-color:var(--brand)}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:var(--on-brand);grid-column:1/-1;font-size:16px}
+.btn.pri:hover{background:var(--brand-strong)}
+.btn.ghost{background:transparent}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.note{font-size:12px;color:var(--muted);padding:0 16px 14px}
+.plat{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.plat .seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface-2);padding:4px;border-radius:10px}
+.plat .seg label{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:7px;cursor:pointer;font-weight:600;font-size:14px;color:var(--muted)}
+.plat .seg input{accent-color:var(--brand);margin:0}
+.plat .seg label:has(input:checked){background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.plat .hint{font-size:13px;color:var(--muted)}
+.item.off{cursor:not-allowed;opacity:.55}
+.item.off:hover{background:transparent}
+.item.off input[type=checkbox]{cursor:not-allowed}
+.item.off .nm{text-decoration:line-through;text-decoration-color:var(--muted)}
+.item .pr.na{font-family:var(--f-display);font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:11px;color:var(--muted);border:1px dashed var(--line);border-radius:4px;padding:0 5px}
+.mod.mod-off>header{background:var(--muted)}
+.mod-off .addrow,.mod-off .blk-tools{display:none}
+.addrow :disabled{opacity:.45;cursor:not-allowed}
+.off-note{font-family:var(--f-body);font-size:12px;font-weight:600;background:var(--surface);color:var(--fg);border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:3px}
+.mbar{display:none}
+@media (max-width:980px){
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;align-items:center;gap:12px;background:var(--fg);color:var(--bg);padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-shadow:0 -4px 16px rgba(0,0,0,.18);transition:transform .2s}
+  .mbar.hide{transform:translateY(110%)}
+  .mbar .mb-info{flex:1;min-width:0;display:flex;flex-direction:column}
+  .mbar .mb-lbl{font-family:var(--f-display);font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mbar .mb-val{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:20px;font-weight:600;line-height:1.2}
+  .mbar button{border:0;background:var(--brand);color:var(--on-brand);font-weight:700;border-radius:9px;padding:10px 14px;cursor:pointer;white-space:nowrap}
+  .wrap{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+}
+@media (prefers-reduced-motion:reduce){.mbar{transition:none}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:9px;font-weight:600;z-index:30;max-width:calc(100% - 32px)}
+
+/* Scope view */
+.scope{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-top:16px}
+.scope>header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.scope>header h2{font-size:22px}
+.scope>header .bt{display:flex;gap:8px;flex-wrap:wrap}
+.scope pre{margin:0;padding:16px;font-family:var(--f-mono);font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;max-height:520px;overflow:auto}
+
+/* Tables */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.panel h2{font-size:24px;margin-bottom:4px}
+.panel p.lead{color:var(--muted);margin:0 0 14px;max-width:70ch}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-family:var(--f-display);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num{text-align:right}
+td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)}
+.grp-row td{background:var(--surface-2);font-family:var(--f-display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+.pill.warn{background:var(--amber-soft);color:var(--amber-fg)}
+.row-acts{display:flex;gap:10px;flex-wrap:wrap}
+.panel-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.status{font-size:13px;color:var(--muted)}
+.empty{padding:28px 10px;text-align:center;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.btn,.item{transition:background-color .12s,border-color .12s}}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <span class="mark">INTELIAR™</span>
+      <h1>Licença de Software</h1>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-config" data-view="config" aria-selected="true">Configurar</button>
+      <button role="tab" id="tab-precos" data-view="precos" aria-selected="false">Tabela de preços</button>
+      <button role="tab" id="tab-propostas" data-view="propostas" aria-selected="false">Propostas salvas</button>
+    </div>
+  </div>
+
+  <!-- CONFIGURAR -->
+  <section id="view-config">
+    <div class="proj">
+      <div class="plat" role="radiogroup" aria-labelledby="plat-lbl">
+        <span class="f" id="plat-lbl" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Plataforma</span>
+        <div class="seg">
+          <label for="pl-padrao"><input type="radio" name="plat" id="pl-padrao" value="padrao" checked> Padrão <span class="mono" id="pl-padrao-v"></span></label>
+          <label for="pl-logo"><input type="radio" name="plat" id="pl-logo" value="logo"> LOGO! — versão simplificada <span class="mono" id="pl-logo-v"></span></label>
+        </div>
+        <span class="hint" id="plat-hint">Define o valor da licença base.</span>
+      </div>
+      <label class="f">Cliente<input type="text" id="p-cliente" placeholder="Nome do cliente"></label>
+      <label class="f">Projeto / Equipamento<input type="text" id="p-projeto" placeholder="Ex.: Coletor de pó — linha 3"></label>
+      <label class="f">Nº da proposta<input type="text" id="p-numero" placeholder="Ex.: PRP-2026-041"></label>
+      <label class="f">Data<input type="date" id="p-data"></label>
+      <label class="f" style="grid-column:1/-1">Observações para o desenvolvedor<textarea id="p-obs" placeholder="Detalhes técnicos, prazos, particularidades do cliente…"></textarea></label>
+    </div>
+
+    <div class="main">
+      <div class="modules" id="modules"></div>
+
+      <aside class="sum" aria-live="polite">
+        <div class="tot">
+          <div class="lbl">Valor da licença</div>
+          <div class="val" id="s-total">R$ 0,00</div>
+          <div class="meta" id="s-meta"></div>
+        </div>
+        <div class="lines" id="s-lines"></div>
+        <div class="disc">
+          <label for="p-desc">Desconto</label>
+          <input type="number" id="p-desc" min="0" max="100" step="0.5" value="0"> <span>%</span>
+        </div>
+        <div class="acts">
+          <button class="btn pri" id="b-escopo">Gerar escopo para o desenvolvedor</button>
+          <button class="btn" id="b-salvar">Salvar proposta</button>
+          <button class="btn ghost" id="b-limpar">Limpar seleção</button>
+        </div>
+        <p class="note" id="s-note"></p>
+      </aside>
+    </div>
+
+    <div class="scope" id="scope" hidden>
+      <header>
+        <h2>Escopo do projeto</h2>
+        <div class="bt">
+          <button class="btn" id="b-copiar">Copiar texto</button>
+          <button class="btn" id="b-baixar-md">Baixar .md</button>
+          <button class="btn" id="b-baixar-csv">Baixar .csv</button>
+        </div>
+      </header>
+      <pre id="scope-text"></pre>
+    </div>
+  </section>
+
+  <!-- PREÇOS -->
+  <section id="view-precos" hidden>
+    <div class="panel">
+      <h2>Tabela de preços</h2>
+      <p class="lead">Valores unitários usados no cálculo (equivalente à aba “Referencias”). Alterações salvas aqui ficam gravadas neste computador.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Item</th><th>Aplicação</th><th class="num" style="text-align:right">Valor unit. (R$)</th></tr></thead>
+        <tbody id="price-body"></tbody>
+      </table></div>
+      <div class="panel-foot">
+        <button class="btn pri" id="b-salvar-precos" style="grid-column:auto">Salvar tabela</button>
+        <button class="btn ghost" id="b-reset-precos">Restaurar valores da planilha</button>
+        <span class="status" id="price-status"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROPOSTAS -->
+  <section id="view-propostas" hidden>
+    <div class="panel">
+      <h2>Propostas salvas</h2>
+      <p class="lead">Histórico das licenças calculadas. Abra uma proposta para revisar, ajustar e gerar o escopo novamente.</p>
+      <div class="panel-foot" style="margin:0 0 14px">
+        <button class="btn" id="b-bk-exp" type="button">Exportar backup (.json)</button>
+        <label class="btn" for="bk-file" style="cursor:pointer">Importar backup<input type="file" id="bk-file" accept=".json,application/json" hidden></label>
+        <span class="status" id="bk-status">Os dados ficam salvos neste navegador. Exporte um backup periodicamente.</span>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Data</th><th>Cliente / Projeto</th><th>Nº</th><th style="text-align:right">Total</th><th></th></tr></thead>
+        <tbody id="prop-body"><tr><td colspan="5" class="empty">Carregando propostas…</td></tr></tbody>
+      </table></div>
+    </div>
+  </section>
+</div>
+<div class="mbar" id="mbar" aria-hidden="false">
+  <div class="mb-info"><span class="mb-lbl" id="mb-lbl">Valor da licença</span><span class="mb-val" id="mb-val">R$ 0,00</span></div>
+  <button type="button" id="mb-go">Ver resumo</button>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ===== Modo local: armazenamento neste computador (substitui o armazenamento do claude.ai) ===== */
+(function(){
+  var KEY = "inteliar-localdb-v1";
+  var store = {};
+  try{ store = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; }catch(e){ store = {}; }
+  var subs = [];
+  function persist(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){ alert("Não foi possível gravar no armazenamento do navegador."); } }
+  function notify(){ subs.slice().forEach(function(f){ try{ f(); }catch(e){} }); }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function snap(path){
+    var has = Object.prototype.hasOwnProperty.call(store, path);
+    var body = has ? clone(store[path]) : undefined;
+    return { id: path.split("/").pop(), exists: has, data: function(){ return body; }, metadata:{fromCache:false,hasPendingWrites:false} };
+  }
+  function rid(){ return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function docRef(path){
+    return {
+      id: path.split("/").pop(), path: path,
+      get: function(){ return Promise.resolve(snap(path)); },
+      set: function(d){ store[path] = clone(d); persist(); notify(); return Promise.resolve(); },
+      update: function(d){ store[path] = Object.assign(store[path]||{}, clone(d)); persist(); notify(); return Promise.resolve(); },
+      delete: function(){ delete store[path]; persist(); notify(); return Promise.resolve(); },
+      onSnapshot: function(next){ var f = function(){ next(snap(path)); }; subs.push(f); setTimeout(f,0); return function(){ subs = subs.filter(function(x){ return x!==f; }); }; }
+    };
+  }
+  function query(coll, ord, lim){
+    function run(){
+      var pre = coll + "/";
+      var docs = Object.keys(store).filter(function(k){ return k.indexOf(pre)===0 && k.slice(pre.length).indexOf("/")<0; }).map(snap);
+      if(ord){ docs.sort(function(a,b){ var x=a.data()[ord.f], y=b.data()[ord.f]; var c = x<y?-1:x>y?1:0; return ord.d==="desc"?-c:c; }); }
+      if(lim) docs = docs.slice(0,lim);
+      return { docs: docs, size: docs.length, empty: !docs.length, docChanges: function(){ return []; }, metadata:{fromCache:false,hasPendingWrites:false} };
+    }
+    return {
+      path: coll,
+      doc: function(id){ return docRef(coll + "/" + (id || rid())); },
+      add: function(d){ var r = docRef(coll + "/" + rid()); return r.set(d).then(function(){ return r; }); },
+      orderBy: function(f,d){ return query(coll, {f:f,d:d||"asc"}, lim); },
+      limit: function(n){ return query(coll, ord, n); },
+      where: function(){ return query(coll, ord, lim); },
+      get: function(){ return Promise.resolve(run()); },
+      onSnapshot: function(next){ var f = function(){ next(run()); }; subs.push(f); setTimeout(f,0); return function(){ subs = subs.filter(function(x){ return x!==f; }); }; }
+    };
+  }
+  var db = { doc: docRef, collection: function(p){ return query(p); } };
+  function saveFile(name, data){
+    var blob = data instanceof Blob ? data : new Blob([data], {type: /\.csv$/i.test(name) ? "text/csv;charset=utf-8" : /\.json$/i.test(name) ? "application/json" : "text/plain;charset=utf-8"});
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    return Promise.resolve({status:"saved"});
+  }
+  var downloads = { save: function(r){ return saveFile(r.filename, r.data); } };
+  window.claude = { use: function(name){ return Promise.resolve(name==="db" ? db : name==="downloads" ? downloads : null); } };
+
+  /* Backup: exportar / importar tudo (preços + propostas) */
+  window.inteliarBackup = {
+    exportar: function(){
+      var d = new Date().toISOString().slice(0,10);
+      saveFile("Inteliar-backup-" + d + ".json", JSON.stringify({app:"inteliar-licenca", versao:1, exportadoEm:new Date().toISOString(), dados:store}, null, 2));
+    },
+    importar: function(file, done){
+      var fr = new FileReader();
+      fr.onload = function(){
+        try{
+          var j = JSON.parse(fr.result);
+          if(!j || j.app!=="inteliar-licenca" || typeof j.dados!=="object") throw new Error("arquivo inválido");
+          Object.keys(j.dados).forEach(function(k){ store[k] = j.dados[k]; });
+          persist(); notify(); done(null, Object.keys(j.dados).length);
+        }catch(e){ done(e); }
+      };
+      fr.readAsText(file);
+    }
+  };
+})();
+</script>
+<script>
+(function(){
+"use strict";
+
+/* ---------- Tabela de preços (valores da aba Referencias) ---------- */
+const DEFAULT_PRICES = {
+  base:23600, simples:500, complexa:3000, logo:12000, outros:0,
+  serv_disp:0, serv_fora:5000, startup_sp:4000, startup_fora:6000, backup_sd:2500, backup_ihm:2500
+};
+const PRICE_META = [
+  {grp:"Software"},
+  {k:"base", nome:"Licença padrão", uso:"Licença base — plataforma Padrão"},
+  {k:"simples", nome:"Customização simples", uso:"Sinais Digitais (valor único), Qualidade do Ar, Homologação"},
+  {k:"complexa", nome:"Customização complexa", uso:"Rede – Integração Cliente, Controle Diversos (por item)"},
+  {k:"logo", nome:"Licença LOGO!", uso:"Licença base — plataforma LOGO! (versão simplificada)"},
+  {k:"outros", nome:"Outros", uso:"Sem item vinculado (igual à planilha)", warn:true},
+  {grp:"Serviços"},
+  {k:"serv_disp", nome:"Comissionamento — disponibilidade Purefeel", uso:"Serviço"},
+  {k:"serv_fora", nome:"Comissionamento — fora da disponibilidade Purefeel", uso:"Serviço"},
+  {k:"startup_sp", nome:"Startup — cliente final em SP", uso:"Serviço"},
+  {k:"startup_fora", nome:"Startup — cliente final fora de SP", uso:"Serviço"},
+  {k:"backup_sd", nome:"Backup do PLC em cartão SD (Siemens)", uso:"Serviço"},
+  {k:"backup_ihm", nome:"Backup runtime IHM (pendrive)", uso:"Serviço"}
+];
+
+/* ---------- Estrutura analítica do software ---------- */
+const MODULES = [
+  {id:"integ", nome:"Integridade Operacional", blocos:[
+    {id:"integ-p", tipo:"pad", cat:"Sinais Digitais", itens:["Filtros em posição","Segurança","Recipiente cheio","Vibração","Disjuntor motor","Processo OK","Diagnóstico e rastreabilidade"]},
+    {id:"integ-sd", tipo:"cus", cat:"Sinais Digitais", preco:"simples", regra:"unico", extras:true,
+      itens:["Válvula de isolamento","Temperatura exaustor","Válvula antiexplosão","Temperatura do mancal","Porta de alívio","Sinal “Fire Alarm”"]},
+    {id:"integ-rede", tipo:"cus", cat:"Rede – Integração Cliente", preco:"complexa",
+      itens:["Rockwell – Prosoft","Rockwell – Protocolo CIP","Novos protocolos"]}
+  ]},
+  {id:"vent", nome:"Ventilação", blocos:[
+    {id:"vent-p", tipo:"pad", cat:"Controle", itens:["Acionamento remoto","Sensores DP","Controle PID G120 Siemens","Funcionamento por demanda (calendário)","Horímetro de máquina","Diagnóstico de rede e falhas"]},
+    {id:"vent-cd", tipo:"cus", cat:"Controle Diversos", preco:"complexa", extras:true,
+      itens:["Soft Start: sistema anti-bombeamento","Monitoramento de vazão indireto","Referência analógica externa","Válvulas rotativas","Coifa móvel discreta","Coifa móvel em rede Profinet"]}
+  ]},
+  {id:"ar", nome:"Qualidade do Ar na Descarga", blocos:[
+    {id:"ar-p", tipo:"pad", cat:"Six in One – Logoeie", itens:["CO₂","PM10","PM2.5","Temperatura","Análise do ar","Indício de rompimento e incêndio do filtro","Histórico de dados"]},
+    {id:"ar-c", tipo:"cus", cat:"Six in One – Logoeie", preco:"simples", extras:true, itens:["Umidade","TVOC","CH₂O"]}
+  ]},
+  {id:"filt", nome:"Elementos Filtrantes", blocos:[
+    {id:"filt-p", tipo:"pad", cat:"Análise de Sensores", itens:["Sensores DP","Indicação de saturação","Análise de vida útil","Previsão dinâmica da data de troca","Horímetro individual","Alarmes e falhas de saturação"]},
+    {id:"filt-gq", tipo:"cus", cat:"Garantia de Qualidade", preco:"simples", extras:true, itens:["Homologação do filtro"]}
+  ]},
+  {id:"serv", nome:"Serviços", blocos:[
+    {id:"serv-s", tipo:"srv", cat:"Serviços de campo", itens:[
+      {nome:"Comissionamento — disponibilidade Purefeel", k:"serv_disp"},
+      {nome:"Comissionamento — fora da disponibilidade Purefeel", k:"serv_fora"},
+      {nome:"Startup — cliente final em SP", k:"startup_sp"},
+      {nome:"Startup — cliente final fora de SP", k:"startup_fora"},
+      {nome:"Backup do PLC em cartão SD (Siemens)", k:"backup_sd"},
+      {nome:"Backup runtime IHM (pendrive)", k:"backup_ihm"}
+    ]}
+  ]}
+];
+
+/* ---------- Estado ---------- */
+const DRAFT_KEY = "inteliar-draft-v1";
+let prices = {...DEFAULT_PRICES};
+let state = freshState();
+let db = null, userCap = null, canWritePrices = true, canWriteProps = true;
+let propostas = [];
+
+function freshState(){
+  return {plat:"padrao", sel:{}, extras:{}, desc:0, cliente:"", projeto:"", numero:"", data:new Date().toISOString().slice(0,10), obs:""};
+}
+function loadDraft(){
+  try{ const r = localStorage.getItem(DRAFT_KEY); if(r){ const d = JSON.parse(r); if(d && d.sel) state = Object.assign(freshState(), d); } }catch(e){}
+}
+let draftTimer=null;
+function saveDraft(){
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(()=>{ try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(state)); }catch(e){} }, 300);
+}
+
+const $ = s => document.querySelector(s);
+const brl = v => (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid = () => "x" + Math.random().toString(36).slice(2,9);
+
+/* Itens indisponíveis na plataforma LOGO! */
+const LOGO_BLOCKED = new Set(["integ-p-6","integ-rede-0","integ-rede-1","vent-p-2","vent-p-3","vent-p-5","vent-cd-5","filt-p-2","filt-p-3","filt-gq-0","serv-s-4","serv-s-5"]);
+const LOGO_BLOCKED_MODULES = new Set(["ar"]);
+const modOff = m => state.plat==="logo" && LOGO_BLOCKED_MODULES.has(m.id);
+const isBlocked = (m,it) => state.plat==="logo" && (LOGO_BLOCKED_MODULES.has(m.id) || LOGO_BLOCKED.has(it.id));
+
+function itemsOf(b){
+  const base = b.itens.map((it,i)=> typeof it==="string" ? {id:b.id+"-"+i, nome:it} : {id:b.id+"-"+i, nome:it.nome, k:it.k});
+  const ex = (state.extras[b.id]||[]).map(x=>({id:x.id, nome:x.nome, extra:true}));
+  return base.concat(ex);
+}
+function unitPrice(b, it){
+  if(b.tipo==="pad") return 0;
+  if(b.tipo==="srv") return Number(prices[it.k])||0;
+  return Number(prices[b.preco])||0;
+}
+
+/* ---------- Cálculo (mesma lógica da planilha) ---------- */
+function compute(){
+  const isLogo = state.plat==="logo";
+  const out = {base:Number(isLogo ? prices.logo : prices.base)||0, baseNome: isLogo ? "Licença LOGO!" : "Licença padrão", custom:0, serv:0, groups:[], count:0};
+  MODULES.forEach(m=>{
+    m.blocos.forEach(b=>{
+      const sel = itemsOf(b).filter(it=>state.sel[it.id] && !isBlocked(m,it));
+      if(!sel.length) return;
+      out.count += sel.length;
+      let val = 0;
+      if(b.tipo==="cus" && b.regra==="unico") val = Number(prices[b.preco])||0;   // E15: valor único se houver qualquer item
+      else val = sel.reduce((s,it)=>s+unitPrice(b,it),0);                       // SUMIF por item
+      if(b.tipo==="srv") out.serv += val; else if(b.tipo==="cus") out.custom += val;
+      out.groups.push({mod:m, bloco:b, itens:sel, valor:val});
+    });
+  });
+  out.bruto = out.base + out.custom + out.serv;
+  const d = Math.min(100, Math.max(0, Number(state.desc)||0));
+  out.descPct = d;
+  out.descVal = Math.round(out.bruto * d) / 100;
+  out.total = out.bruto - out.descVal;
+  return out;
+}
+
+/* ---------- Render: módulos ---------- */
+function renderModules(){
+  const host = $("#modules");
+  host.innerHTML = MODULES.map(m=>{
+    const blocks = m.blocos.map(b=>{
+      const kindLbl = b.tipo==="pad" ? "Padrão" : b.tipo==="cus" ? "Customização" : "Serviços";
+      const kindCls = b.tipo==="pad" ? "pad" : "cus";
+      let rule = "";
+      if(b.tipo==="pad") rule = "incluso na licença";
+      else if(b.tipo==="cus" && b.regra==="unico") rule = brl(prices[b.preco]) + " por grupo";
+      else if(b.tipo==="cus") rule = brl(prices[b.preco]) + " por item";
+      const items = itemsOf(b).map(it=>{
+        const off = isBlocked(m,it);
+        const on = !!state.sel[it.id] && !off;
+        const p = unitPrice(b,it);
+        const pr = off ? "Não disponível no LOGO!" : b.tipo==="pad" ? "incluso" : (b.regra==="unico" ? "grupo" : brl(p));
+        return `<label class="item${on?" on":""}${off?" off":""}${it.extra?" extra":""}" for="c-${it.id}"${off?' title="Não disponível na plataforma LOGO!"':""}>
+          <input type="checkbox" id="c-${it.id}" data-id="${it.id}" ${on?"checked":""} ${off?"disabled":""}>
+          <span class="nm">${esc(it.nome)}${it.extra?'<span class="tag-x">EXTRA</span>':""}</span>
+          <span class="pr${off?" na":""}">${off?"indisponível":pr}</span>
+          ${it.extra?`<button class="x" type="button" data-rm="${b.id}|${it.id}" aria-label="Remover ${esc(it.nome)}">×</button>`:""}
+        </label>`;
+      }).join("");
+      const add = b.extras ? `<div class="addrow"><input type="text" id="add-${b.id}" placeholder="Novo item de customização…"${modOff(m)?" disabled":""} aria-label="Novo item em ${esc(b.cat)}"><button type="button" data-add="${b.id}"${modOff(m)?" disabled":""}>Adicionar</button></div>` : "";
+      return `<div class="blk">
+        <div class="blk-h"><span class="kind ${kindCls}">${kindLbl}</span><span class="cat">${esc(b.cat)}</span><span class="rule">${rule}</span></div>
+        ${items}
+        <div class="blk-tools"><button class="link" type="button" data-all="${b.id}">Marcar todos</button><button class="link" type="button" data-none="${b.id}">Desmarcar</button></div>
+        ${add}
+      </div>`;
+    }).join("");
+    return `<section class="mod${modOff(m)?" mod-off":""}"><header><h2>${esc(m.nome)}${modOff(m)?'<span class="off-note">Indisponível no LOGO!</span>':""}</h2><span class="sub" id="ms-${m.id}"></span></header>${blocks}</section>`;
+  }).join("");
+}
+
+/* ---------- Render: resumo ---------- */
+function renderSummary(){
+  const r = compute();
+  $("#s-total").textContent = brl(r.total);
+  $("#mb-val").textContent = brl(r.total);
+  $("#mb-lbl").textContent = "Valor da licença · " + r.count + (r.count===1?" item":" itens") + (state.plat==="logo" ? " · LOGO!" : "");
+  $("#s-meta").textContent = r.count + (r.count===1?" item selecionado":" itens selecionados") + (r.descPct? " · desconto de "+r.descPct.toLocaleString("pt-BR")+"%":"");
+  const lines = [`<div class="ln"><span>${r.baseNome}</span><span>${brl(r.base)}</span></div>`];
+  $("#pl-padrao-v").textContent = brl(prices.base);
+  $("#pl-logo-v").textContent = brl(prices.logo);
+  r.groups.filter(g=>g.bloco.tipo==="cus").forEach(g=>{
+    lines.push(`<div class="ln sm"><span>${esc(g.bloco.cat)} · ${g.itens.length} ${g.itens.length===1?"item":"itens"}</span><span>${brl(g.valor)}</span></div>`);
+  });
+  lines.push(`<div class="ln"><span>Customizações</span><span>${brl(r.custom)}</span></div>`);
+  lines.push(`<div class="ln"><span>Serviços</span><span>${brl(r.serv)}</span></div>`);
+  if(r.descVal) lines.push(`<div class="ln dis"><span>Desconto (${r.descPct.toLocaleString("pt-BR")}%)</span><span>− ${brl(r.descVal)}</span></div>`);
+  $("#s-lines").innerHTML = lines.join("");
+  MODULES.forEach(m=>{
+    const n = r.groups.filter(g=>g.mod.id===m.id).reduce((s,g)=>s+g.itens.length,0);
+    const v = r.groups.filter(g=>g.mod.id===m.id).reduce((s,g)=>s+g.valor,0);
+    const el = $("#ms-"+m.id); if(el) el.textContent = n ? `${n} sel. · ${brl(v)}` : "";
+  });
+  if(!$("#scope").hidden) $("#scope-text").textContent = buildScope();
+}
+
+/* ---------- Escopo para o desenvolvedor ---------- */
+function fmtDate(iso){ if(!iso) return "—"; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
+function buildScope(){
+  const r = compute();
+  const L = [];
+  L.push("# Escopo de Software — INTELIAR™");
+  L.push("");
+  L.push("Cliente:   " + (state.cliente||"—"));
+  L.push("Projeto:   " + (state.projeto||"—"));
+  L.push("Proposta:  " + (state.numero||"—"));
+  L.push("Data:      " + fmtDate(state.data));
+  L.push("Plataforma: " + (state.plat==="logo" ? "LOGO! (versão simplificada)" : "Padrão"));
+  L.push("");
+  MODULES.forEach(m=>{
+    const gs = r.groups.filter(g=>g.mod.id===m.id);
+    if(!gs.length) return;
+    L.push("## " + m.nome);
+    gs.forEach(g=>{
+      const b = g.bloco;
+      const hdr = b.tipo==="pad" ? `Padrão — ${b.cat}` : b.tipo==="srv" ? b.cat : `Customização ${b.preco==="complexa"?"complexa":"simples"} — ${b.cat}`;
+      L.push("");
+      L.push("### " + hdr);
+      g.itens.forEach(it=>{
+        let p = "";
+        if(b.tipo==="srv") p = "  (" + brl(unitPrice(b,it)) + ")";
+        else if(b.tipo==="cus" && b.regra!=="unico") p = "  (" + brl(unitPrice(b,it)) + ")";
+        L.push("- [ ] " + it.nome + (it.extra?"  [NOVO — a especificar]":"") + p);
+      });
+      if(b.tipo==="cus" && b.regra==="unico") L.push("  Valor do grupo: " + brl(g.valor));
+    });
+    L.push("");
+  });
+  if(!r.groups.length){ L.push("(Nenhuma funcionalidade selecionada — apenas licença padrão.)"); L.push(""); }
+  if(state.obs && state.obs.trim()){ L.push("## Observações"); L.push(state.obs.trim()); L.push(""); }
+  L.push("## Valores");
+  L.push((state.plat==="logo" ? "Licença LOGO! ......... " : "Licença padrão ........ ") + brl(r.base));
+  L.push("Customizações ......... " + brl(r.custom));
+  L.push("Serviços .............. " + brl(r.serv));
+  if(r.descVal) L.push("Desconto (" + r.descPct.toLocaleString("pt-BR") + "%) ...... − " + brl(r.descVal));
+  L.push("TOTAL DA LICENÇA ...... " + brl(r.total));
+  return L.join("\n");
+}
+function buildCsv(){
+  const r = compute();
+  const q = s => '"' + String(s).replace(/"/g,'""') + '"';
+  const rows = [["Módulo","Tipo","Categoria","Item","Valor unitário (R$)"]];
+  rows.push(["Software","Licença",state.plat==="logo"?"LOGO!":"Padrão",r.baseNome, r.base]);
+  r.groups.forEach(g=>{
+    const t = g.bloco.tipo==="pad"?"Padrão":g.bloco.tipo==="srv"?"Serviço":"Customização";
+    g.itens.forEach((it,i)=>{
+      const v = g.bloco.regra==="unico" ? (i===0? g.valor : 0) : unitPrice(g.bloco,it);
+      rows.push([g.mod.nome, t, g.bloco.cat, it.nome, v]);
+    });
+  });
+  if(r.descVal) rows.push(["","Desconto","",r.descPct+"%", -r.descVal]);
+  rows.push(["","","","TOTAL", r.total]);
+  return "﻿" + rows.map(rw=>rw.map((c,i)=> i===4 && c!=="" && typeof c==="number" ? String(c).replace(".",",") : q(c)).join(";")).join("\r\n");
+}
+
+/* ---------- Toast ---------- */
+let tT=null;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(tT); tT=setTimeout(()=>t.hidden=true,2600); }
+
+/* ---------- Eventos: configurar ---------- */
+function bindConfig(){
+  const host = $("#modules");
+  host.addEventListener("change", e=>{
+    const id = e.target.dataset && e.target.dataset.id;
+    if(!id) return;
+    if(e.target.checked) state.sel[id]=true; else delete state.sel[id];
+    e.target.closest(".item").classList.toggle("on", e.target.checked);
+    saveDraft(); renderSummary();
+  });
+  host.addEventListener("click", e=>{
+    const t = e.target;
+    if(t.dataset.rm){
+      e.preventDefault();
+      const [bid, iid] = t.dataset.rm.split("|");
+      state.extras[bid] = (state.extras[bid]||[]).filter(x=>x.id!==iid);
+      delete state.sel[iid];
+      saveDraft(); renderModules(); renderSummary();
+    } else if(t.dataset.add){
+      addExtra(t.dataset.add);
+    } else if(t.dataset.all || t.dataset.none){
+      const bid = t.dataset.all || t.dataset.none;
+      const m = MODULES.find(mm=>mm.blocos.some(x=>x.id===bid));
+      const b = m.blocos.find(x=>x.id===bid);
+      itemsOf(b).forEach(it=>{ if(t.dataset.all){ if(!isBlocked(m,it)) state.sel[it.id]=true; } else delete state.sel[it.id]; });
+      saveDraft(); renderModules(); renderSummary();
+    }
+  });
+  host.addEventListener("keydown", e=>{
+    if(e.key==="Enter" && e.target.id && e.target.id.startsWith("add-")){ e.preventDefault(); addExtra(e.target.id.slice(4)); }
+  });
+  [["p-cliente","cliente"],["p-projeto","projeto"],["p-numero","numero"],["p-data","data"],["p-obs","obs"],["p-desc","desc"]].forEach(([id,k])=>{
+    const el = $("#"+id);
+    el.addEventListener("input", ()=>{ state[k] = k==="desc" ? Number(el.value)||0 : el.value; saveDraft(); renderSummary(); });
+  });
+  document.querySelectorAll('input[name="plat"]').forEach(r=>r.addEventListener("change", ()=>{
+    if(!r.checked) return;
+    state.plat = r.value;
+    let n = 0;
+    MODULES.forEach(m=>m.blocos.forEach(b=>itemsOf(b).forEach(it=>{ if(state.sel[it.id] && isBlocked(m,it)){ delete state.sel[it.id]; n++; } })));
+    saveDraft(); renderModules(); renderSummary();
+    if(n) toast(n + (n===1 ? " item desmarcado — indisponível no LOGO!" : " itens desmarcados — indisponíveis no LOGO!"));
+  }));
+  $("#b-limpar").addEventListener("click", ()=>{
+    state.sel = {}; state.desc = 0; $("#p-desc").value = 0;
+    saveDraft(); renderModules(); renderSummary(); toast("Seleção limpa");
+  });
+  $("#b-escopo").addEventListener("click", ()=>{
+    $("#scope").hidden = false;
+    $("#scope-text").textContent = buildScope();
+    $("#scope").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+  });
+  $("#b-copiar").addEventListener("click", ()=>{
+    const txt = buildScope();
+    const fallback = ()=>{ const r=document.createRange(); r.selectNodeContents($("#scope-text")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Texto selecionado — use Ctrl+C"); };
+    try{ navigator.clipboard.writeText(txt).then(()=>toast("Escopo copiado"), fallback); }catch(e){ fallback(); }
+  });
+  $("#b-baixar-md").addEventListener("click", ()=> download(fileBase()+".md", buildScope()));
+  $("#b-baixar-csv").addEventListener("click", ()=> download(fileBase()+".csv", buildCsv()));
+  $("#b-salvar").addEventListener("click", saveProposal);
+  $("#mb-go").addEventListener("click", ()=>{
+    $(".sum").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+  });
+  // Esconde a barra quando o resumo já está visível ou fora da aba Configurar
+  const bar = $("#mbar");
+  let sumVisible = false;
+  const syncBar = ()=>{ const off = sumVisible || $("#view-config").hidden; bar.classList.toggle("hide", off); bar.setAttribute("aria-hidden", off ? "true" : "false"); };
+  if("IntersectionObserver" in window){
+    new IntersectionObserver(es=>{ sumVisible = es[0].isIntersecting; syncBar(); }, {threshold:0.15}).observe($(".sum"));
+  }
+  document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click", ()=>setTimeout(syncBar,0)));
+  syncBar();
+}
+function addExtra(bid){
+  const inp = $("#add-"+bid); const nome = (inp.value||"").trim();
+  if(!nome){ inp.focus(); return; }
+  const id = uid();
+  (state.extras[bid] = state.extras[bid]||[]).push({id, nome});
+  state.sel[id] = true;
+  saveDraft(); renderModules(); renderSummary();
+  const n = $("#add-"+bid); if(n) n.focus();
+}
+function fileBase(){
+  const s = [ "Escopo", state.numero, state.cliente ].filter(Boolean).join(" - ");
+  return s.replace(/[\\/:*?"<>|]+/g,"").slice(0,120) || "Escopo";
+}
+let downloadsCap;
+async function download(name, data){
+  try{
+    if(downloadsCap===undefined) downloadsCap = window.claude ? await window.claude.use("downloads") : null;
+    if(!downloadsCap){ toast("Download indisponível aqui — use “Copiar texto”"); return; }
+    await downloadsCap.save({filename:name, data});
+  }catch(e){
+    if(e && e.code==="declined") return;
+    toast("Não foi possível baixar o arquivo — use “Copiar texto”");
+  }
+}
+
+/* ---------- Tabs ---------- */
+function bindTabs(){
+  document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click", ()=>{
+    const v = b.dataset.view;
+    document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected", x===b ? "true":"false"));
+    ["config","precos","propostas"].forEach(n=> $("#view-"+n).hidden = n!==v);
+    try{ localStorage.setItem("inteliar-tab", v); }catch(e){}
+  }));
+}
+
+/* ---------- Tabela de preços ---------- */
+function renderPrices(){
+  $("#price-body").innerHTML = PRICE_META.map(p=>{
+    if(p.grp) return `<tr class="grp-row"><td colspan="3">${p.grp}</td></tr>`;
+    return `<tr><td>${esc(p.nome)}</td><td><span class="pill${p.warn?" warn":""}">${esc(p.uso)}</span></td>
+      <td class="num"><input type="number" id="pr-${p.k}" data-k="${p.k}" min="0" step="50" value="${Number(prices[p.k])||0}" ${canWritePrices?"":"disabled"} aria-label="${esc(p.nome)}"></td></tr>`;
+  }).join("");
+}
+function bindPrices(){
+  $("#b-salvar-precos").addEventListener("click", async ()=>{
+    const next = {...prices};
+    document.querySelectorAll("#price-body input[data-k]").forEach(i=> next[i.dataset.k] = Math.max(0, Number(i.value)||0));
+    prices = next;
+    renderModules(); renderSummary();
+    if(!db){ $("#price-status").textContent = "Aplicado nesta sessão (armazenamento compartilhado indisponível)."; return; }
+    try{
+      await db.doc("config/precos").set({...next, atualizadoEm:new Date().toISOString()});
+      $("#price-status").textContent = "Tabela salva em " + new Date().toLocaleString("pt-BR");
+      toast("Tabela de preços salva");
+    }catch(e){
+      $("#price-status").textContent = "Você não tem permissão para alterar a tabela. Valores aplicados só nesta tela.";
+    }
+  });
+  $("#b-reset-precos").addEventListener("click", ()=>{
+    Object.keys(DEFAULT_PRICES).forEach(k=>{ const i=$("#pr-"+k); if(i) i.value = DEFAULT_PRICES[k]; });
+    $("#price-status").textContent = "Valores da planilha restaurados — clique em “Salvar tabela” para confirmar.";
+  });
+}
+
+/* ---------- Propostas ---------- */
+function renderProps(){
+  const body = $("#prop-body");
+  if(!db){ body.innerHTML = `<tr><td colspan="5" class="empty">O histórico de propostas fica disponível quando a página é aberta no claude.ai com acesso de escrita.</td></tr>`; return; }
+  if(!propostas.length){ body.innerHTML = `<tr><td colspan="5" class="empty">Nenhuma proposta salva ainda. Configure uma licença e clique em “Salvar proposta”.</td></tr>`; return; }
+  body.innerHTML = propostas.map(p=>{
+    const d = p.data();
+    return `<tr><td class="mono">${fmtDate(d.data)}</td>
+      <td><strong>${esc(d.cliente||"—")}</strong><br><span style="color:var(--muted);font-size:13px">${esc(d.projeto||"")}</span></td>
+      <td class="mono">${esc(d.numero||"—")}</td>
+      <td class="num mono">${brl(d.total)}</td>
+      <td><div class="row-acts"><button class="link" data-open="${p.id}">Abrir</button>${canWriteProps?`<button class="link" data-del="${p.id}" style="color:var(--danger)">Excluir</button>`:""}</div></td></tr>`;
+  }).join("");
+}
+let pendingDel = null;
+function bindProps(){
+  $("#prop-body").addEventListener("click", async e=>{
+    const t = e.target;
+    if(t.dataset.open){
+      const p = propostas.find(x=>x.id===t.dataset.open); if(!p) return;
+      const d = p.data();
+      state = Object.assign(freshState(), JSON.parse(JSON.stringify(d.estado||{})));
+      state.propId = p.id;
+      fillFields(); renderModules(); renderSummary(); saveDraft();
+      $("#tab-config").click(); toast("Proposta carregada");
+    } else if(t.dataset.del){
+      if(pendingDel!==t.dataset.del){ pendingDel=t.dataset.del; t.textContent="Confirmar exclusão"; return; }
+      try{ await db.doc("propostas/"+t.dataset.del).delete(); toast("Proposta excluída"); }catch(err){ toast("Não foi possível excluir"); }
+      pendingDel=null;
+    }
+  });
+}
+async function saveProposal(){
+  if(!db){ toast("Salvar requer abrir a página no claude.ai"); return; }
+  if(!canWriteProps){ toast("Seu acesso é somente leitura"); return; }
+  const r = compute();
+  const est = JSON.parse(JSON.stringify(state)); delete est.propId;
+  const body = {cliente:state.cliente, projeto:state.projeto, numero:state.numero, data:state.data,
+    total:r.total, bruto:r.bruto, desconto:r.descPct, itens:r.count, precos:{...prices}, estado:est, salvoEm:new Date().toISOString()};
+  try{
+    const ref = state.propId ? db.doc("propostas/"+state.propId) : db.collection("propostas").doc();
+    await ref.set(body);
+    state.propId = ref.id; saveDraft();
+    toast("Proposta salva");
+  }catch(e){
+    if(e && e.code==="quota_exceeded") toast("Limite de propostas atingido — exclua algumas antigas");
+    else if(e && e.code==="invalid_argument"){ canWriteProps=false; toast("Seu acesso é somente leitura"); }
+    else toast("Não foi possível salvar agora — tente novamente");
+  }
+}
+
+function fillFields(){
+  $("#p-cliente").value = state.cliente||""; $("#p-projeto").value = state.projeto||"";
+  $("#p-numero").value = state.numero||""; $("#p-data").value = state.data||"";
+  $("#p-obs").value = state.obs||""; $("#p-desc").value = state.desc||0;
+  const pl = document.getElementById(state.plat==="logo" ? "pl-logo" : "pl-padrao"); if(pl) pl.checked = true;
+}
+
+/* ---------- Capabilities ---------- */
+async function connect(){
+  if(!window.claude || !window.claude.use){ renderProps(); $("#s-note").textContent = "Modo local: preços padrão da planilha; propostas não são salvas."; return; }
+  try{ userCap = await window.claude.use("user"); }catch(e){ userCap=null; }
+  try{ db = await window.claude.use("db"); }catch(e){ db=null; }
+  if(userCap){
+    try{ const c = await userCap.canEdit(); if(c===false) canWritePrices=false; }catch(e){}
+    try{ const w = await userCap.can("data.write"); if(w===false) canWriteProps=false; }catch(e){}
+  }
+  if(!db){ renderProps(); $("#s-note").textContent = "Preços padrão da planilha. Entre no claude.ai para salvar propostas."; return; }
+  if(!canWritePrices){ $("#b-salvar-precos").disabled = true; $("#b-reset-precos").disabled = true; $("#price-status").textContent = "Somente editores podem alterar a tabela."; }
+  if(!canWriteProps){ $("#b-salvar").disabled = true; }
+  renderPrices();
+  db.doc("config/precos").onSnapshot(s=>{
+    if(s.exists){
+      const d = s.data(); const np = {...DEFAULT_PRICES};
+      Object.keys(DEFAULT_PRICES).forEach(k=>{ if(typeof d[k]==="number") np[k]=d[k]; });
+      prices = np;
+      if(d.atualizadoEm) $("#s-note").textContent = "Tabela de preços atualizada em " + new Date(d.atualizadoEm).toLocaleDateString("pt-BR") + ".";
+    } else {
+      $("#s-note").textContent = "Usando os valores originais da planilha.";
+    }
+    renderPrices(); renderModules(); renderSummary();
+  }, ()=>{});
+  db.collection("propostas").orderBy("salvoEm","desc").limit(300).onSnapshot(s=>{ propostas = s.docs; renderProps(); }, ()=>{});
+}
+
+/* ---------- Boot ---------- */
+loadDraft();
+fillFields();
+renderModules();
+renderPrices();
+renderSummary();
+renderProps();
+bindTabs(); bindConfig(); bindPrices(); bindProps();
+try{ const t = localStorage.getItem("inteliar-tab"); if(t && t!=="config"){ const b=document.querySelector(`.tabs button[data-view="${t}"]`); if(b) b.click(); } }catch(e){}
+$("#prop-body").innerHTML = `<tr><td colspan="5" class="empty">Carregando propostas…</td></tr>`;
+connect();
+})();
+
+document.getElementById("b-bk-exp").addEventListener("click", function(){ window.inteliarBackup.exportar(); });
+document.getElementById("bk-file").addEventListener("change", function(e){
+  var f = e.target.files && e.target.files[0]; if(!f) return;
+  window.inteliarBackup.importar(f, function(err, n){
+    document.getElementById("bk-status").textContent = err ? "Arquivo inválido — selecione um backup exportado por esta aplicação." : ("Backup importado: " + n + " registros.");
+    e.target.value = "";
+  });
+});
+</script>
+
+</body>
+</html>
