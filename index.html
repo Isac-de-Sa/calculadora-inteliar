@@ -164,10 +164,92 @@ td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)
 .status{font-size:13px;color:var(--muted)}
 .empty{padding:28px 10px;text-align:center;color:var(--muted)}
 @media (prefers-reduced-motion:no-preference){.btn,.item{transition:background-color .12s,border-color .12s}}
+
+/* Proposta ao cliente: formulário à esquerda, folha A4 à direita */
+.pgrid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1100px){.pgrid{grid-template-columns:minmax(0,1fr)}}
+.pform{display:flex;flex-direction:column;gap:14px}
+.pform .panel{display:flex;flex-direction:column;gap:10px}
+.pform .panel h2{font-size:20px;margin:0}
+.pform .panel p.lead{margin:0;font-size:13px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.frow{grid-template-columns:1fr}}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--brand);margin:0}
+.logo-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo-prev{height:48px;max-width:160px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px}
+.pacts{display:flex;flex-direction:column;gap:8px}
+.pacts .btn.pri{grid-column:auto}
+.phint{font-size:12px;color:var(--muted);margin:0}
+.paper-wrap{min-width:0}
 </style>
 <style>body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body>
+<style id="paper-css">
+/* Folha da proposta: sempre papel branco (documento para imprimir/PDF), nos dois temas */
+@page{size:A4;margin:14mm}
+.paper{--p-ink:#1d2618;--p-muted:#5d6b55;--p-line:#d3dccb;--p-brand:#4f8a24;--p-brand-soft:#eef5e6;
+  background:#ffffff;color:var(--p-ink);max-width:794px;margin:0 auto;padding:44px 48px;border-radius:4px;box-shadow:0 2px 14px rgba(0,0,0,.14);
+  font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13.5px;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.paper *{box-sizing:border-box}
+.paper h1,.paper h2,.paper h3,.paper h4{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif;margin:0;color:var(--p-ink)}
+.pp-head{display:flex;justify-content:space-between;gap:24px;padding-bottom:14px;border-bottom:3px solid var(--p-brand)}
+.pp-emit{display:flex;gap:14px;align-items:flex-start;min-width:0}
+.pp-emit img{max-height:64px;max-width:180px;object-fit:contain}
+.pp-emit .nm{font-weight:700;font-size:16px}
+.pp-emit .dt{color:var(--p-muted);font-size:12px;line-height:1.5}
+.pp-id{text-align:right;flex-shrink:0}
+.pp-id .k{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif;font-weight:700;font-size:13px;letter-spacing:.16em;color:var(--p-brand)}
+.pp-id .n{font-family:"IBM Plex Mono",Consolas,monospace;font-size:15px;font-weight:600;margin-top:2px}
+.pp-id .d{color:var(--p-muted);font-size:12px;line-height:1.6}
+.pp-title{padding:20px 0 6px}
+.pp-title h1{font-size:28px;font-weight:700;line-height:1.1}
+.pp-title .sub{color:var(--p-muted);font-size:14px;margin-top:2px}
+.pp-cli{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;background:var(--p-brand-soft);border-radius:6px;padding:12px 14px;margin:12px 0 4px}
+.pp-cli .l{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--p-muted)}
+.pp-cli .v{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.pp-sec{margin-top:20px}
+.pp-sec>h2{font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--p-brand);padding-bottom:6px;border-bottom:1px solid var(--p-line);margin-bottom:10px}
+.pp-mod{margin-bottom:10px;break-inside:avoid}
+.pp-mod h3{font-size:15px;font-weight:700;margin-bottom:3px}
+.pp-mod ul{margin:0;padding-left:18px;columns:2;column-gap:28px}
+.pp-mod li{break-inside:avoid;margin:1px 0}
+.pp-tag{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--p-brand);border:1px solid var(--p-brand);border-radius:3px;padding:0 3px;margin-left:5px;vertical-align:1px;white-space:nowrap}
+.pp-tbl{width:100%;min-width:0;border-collapse:collapse}
+.pp-tbl th,.pp-tbl td{padding:7px 8px;border-bottom:1px solid var(--p-line);text-align:left;vertical-align:top;color:var(--p-ink)}
+.pp-tbl th{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--p-muted);font-weight:700}
+.pp-tbl td.r,.pp-tbl th.r{text-align:right;white-space:nowrap;font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums}
+.pp-tbl th.r{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif}
+.pp-tbl td .s{display:block;color:var(--p-muted);font-size:12px}
+.pp-tbl tr{break-inside:avoid}
+.pp-tbl tr.sub td{color:var(--p-muted)}
+.pp-tbl tr.tot td{background:var(--p-brand);color:#ffffff;font-weight:700;font-size:15px;border-bottom:0}
+.pp-cond{display:grid;grid-template-columns:160px 1fr;gap:6px 14px;margin:0}
+.pp-cond dt{font-weight:700;color:var(--p-muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding-top:1px}
+.pp-cond dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.pp-sign{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:44px;break-inside:avoid}
+.pp-sign div{border-top:1px solid var(--p-ink);padding-top:6px;font-size:12px;color:var(--p-muted)}
+.pp-sign strong{display:block;color:var(--p-ink);font-size:13px}
+.pp-foot{margin-top:28px;padding-top:8px;border-top:1px solid var(--p-line);color:var(--p-muted);font-size:10.5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media (max-width:640px){
+  .paper{padding:22px 18px;font-size:12.5px}
+  .pp-head{flex-direction:column;gap:12px}
+  .pp-id{text-align:left}
+  .pp-cli{grid-template-columns:1fr}
+  .pp-mod ul{columns:1}
+  .pp-cond{grid-template-columns:1fr}
+  .pp-sign{grid-template-columns:1fr;gap:28px}
+}
+@media print{
+  html,body{background:#ffffff!important}
+  .top,.mbar,.toast,#view-config,#view-precos,#view-propostas,.pform{display:none!important}
+  #view-cliente{display:block!important}
+  .wrap{padding:0!important;max-width:none!important}
+  .pgrid{display:block!important}
+  .paper{box-shadow:none!important;border-radius:0!important;padding:0!important;max-width:none!important;margin:0!important}
+}
+</style>
 
 <div class="wrap">
   <div class="top">
@@ -177,6 +259,7 @@ td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)
     </div>
     <div class="tabs" role="tablist">
       <button role="tab" id="tab-config" data-view="config" aria-selected="true">Configurar</button>
+      <button role="tab" id="tab-cliente" data-view="cliente" aria-selected="false">Proposta ao cliente</button>
       <button role="tab" id="tab-precos" data-view="precos" aria-selected="false">Tabela de preços</button>
       <button role="tab" id="tab-propostas" data-view="propostas" aria-selected="false">Propostas salvas</button>
     </div>
@@ -216,6 +299,7 @@ td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)
         </div>
         <div class="acts">
           <button class="btn pri" id="b-escopo">Gerar escopo para o desenvolvedor</button>
+          <button class="btn" id="b-proposta" style="grid-column:1/-1">Gerar proposta para o cliente</button>
           <button class="btn" id="b-salvar">Salvar proposta</button>
           <button class="btn ghost" id="b-limpar">Limpar seleção</button>
         </div>
@@ -233,6 +317,63 @@ td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)
         </div>
       </header>
       <pre id="scope-text"></pre>
+    </div>
+  </section>
+
+  <!-- PROPOSTA AO CLIENTE -->
+  <section id="view-cliente" hidden>
+    <div class="pgrid">
+      <div class="pform">
+        <div class="panel">
+          <h2>Condições desta proposta</h2>
+          <p class="lead">Cliente, projeto, itens e valores vêm da aba Configurar.</p>
+          <div class="frow">
+            <label class="f">Validade (dias)<input type="number" id="cv-validade" min="1" step="1"></label>
+            <label class="f">Prazo de entrega<input type="text" id="cv-prazo" placeholder="Ex.: 30 dias após o pedido"></label>
+          </div>
+          <label class="f">Condição de pagamento<input type="text" id="cv-pagamento" placeholder="Ex.: 50% no pedido, 50% na entrega"></label>
+          <label class="f">Observações ao cliente<textarea id="cv-obs" placeholder="Garantia, exclusões, premissas…"></textarea></label>
+          <label class="chk" for="cv-detalhar"><input type="checkbox" id="cv-detalhar"> Detalhar valores por item</label>
+          <label class="chk" for="cv-padrao"><input type="checkbox" id="cv-padrao"> Listar funcionalidades padrão inclusas</label>
+        </div>
+
+        <div class="panel">
+          <h2>Gerar documento</h2>
+          <div class="pacts">
+            <button class="btn pri" id="b-pdf" type="button">Salvar em PDF / Imprimir</button>
+            <button class="btn" id="b-prop-html" type="button">Baixar proposta (.html)</button>
+          </div>
+          <p class="phint" id="pdf-hint">Na janela de impressão, escolha “Salvar como PDF” como destino.</p>
+        </div>
+
+        <div class="panel">
+          <h2>Dados da sua empresa</h2>
+          <p class="lead">Aparecem no cabeçalho de todas as propostas. Preencha uma vez e salve.</p>
+          <label class="f">Empresa<input type="text" id="em-empresa" placeholder="Razão social ou nome fantasia"></label>
+          <div class="frow">
+            <label class="f">CNPJ<input type="text" id="em-cnpj" placeholder="00.000.000/0000-00"></label>
+            <label class="f">Telefone<input type="text" id="em-telefone" placeholder="(11) 0000-0000"></label>
+          </div>
+          <label class="f">Endereço<input type="text" id="em-endereco" placeholder="Rua, nº — Cidade/UF"></label>
+          <div class="frow">
+            <label class="f">Responsável<input type="text" id="em-contato" placeholder="Nome de quem assina"></label>
+            <label class="f">E-mail<input type="text" id="em-email" placeholder="contato@empresa.com.br"></label>
+          </div>
+          <div class="logo-row">
+            <img class="logo-prev" id="em-logo-prev" alt="Logo da empresa" hidden>
+            <label class="btn" for="em-logo" style="cursor:pointer">Escolher logo<input type="file" id="em-logo" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden></label>
+            <button class="link" type="button" id="em-logo-rm" hidden>Remover logo</button>
+          </div>
+          <div class="panel-foot" style="margin-top:4px">
+            <button class="btn" id="b-salvar-emissor" type="button">Salvar dados da empresa</button>
+            <span class="status" id="em-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paper-wrap">
+        <article class="paper" id="paper" aria-label="Pré-visualização da proposta"></article>
+      </div>
     </div>
   </section>
 
@@ -329,6 +470,7 @@ td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)
     return Promise.resolve({status:"saved"});
   }
   var downloads = { save: function(r){ return saveFile(r.filename, r.data); } };
+  window.INTELIAR_LOCAL = true;
   window.claude = { use: function(name){ return Promise.resolve(name==="db" ? db : name==="downloads" ? downloads : null); } };
 
   /* Backup: exportar / importar tudo (preços + propostas) */
@@ -419,7 +561,8 @@ let db = null, userCap = null, canWritePrices = true, canWriteProps = true;
 let propostas = [];
 
 function freshState(){
-  return {plat:"padrao", sel:{}, extras:{}, desc:0, cliente:"", projeto:"", numero:"", data:new Date().toISOString().slice(0,10), obs:""};
+  return {plat:"padrao", sel:{}, extras:{}, desc:0, cliente:"", projeto:"", numero:"", data:new Date().toISOString().slice(0,10), obs:"",
+    validade:30, pagamento:"A combinar", prazo:"A combinar", obsCli:"", detalhar:true, listarPadrao:true};
 }
 function loadDraft(){
   try{ const r = localStorage.getItem(DRAFT_KEY); if(r){ const d = JSON.parse(r); if(d && d.sel) state = Object.assign(freshState(), d); } }catch(e){}
@@ -534,6 +677,7 @@ function renderSummary(){
     const el = $("#ms-"+m.id); if(el) el.textContent = n ? `${n} sel. · ${brl(v)}` : "";
   });
   if(!$("#scope").hidden) $("#scope-text").textContent = buildScope();
+  if(!$("#view-cliente").hidden) renderProposal();
 }
 
 /* ---------- Escopo para o desenvolvedor ---------- */
@@ -593,6 +737,182 @@ function buildCsv(){
   if(r.descVal) rows.push(["","Desconto","",r.descPct+"%", -r.descVal]);
   rows.push(["","","","TOTAL", r.total]);
   return "﻿" + rows.map(rw=>rw.map((c,i)=> i===4 && c!=="" && typeof c==="number" ? String(c).replace(".",",") : q(c)).join(";")).join("\r\n");
+}
+
+/* ---------- Proposta ao cliente ---------- */
+const EMISSOR_KEYS = ["empresa","cnpj","telefone","endereco","contato","email"];
+let emissor = {empresa:"", cnpj:"", telefone:"", endereco:"", contato:"", email:"", logo:""};
+const CAN_PRINT = !!window.INTELIAR_LOCAL;   // a impressão funciona no arquivo local / GitHub Pages; no visualizador do claude.ai não
+const nl2br = s => esc(s).replace(/\n/g,"<br>");
+function addDays(iso, n){
+  if(!iso) return "";
+  const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + (Number(n)||0));
+  return d.toISOString().slice(0,10);
+}
+function buildProposalHTML(){
+  const r = compute();
+  const isLogo = state.plat==="logo";
+  const platNome = isLogo ? "Plataforma LOGO! — versão simplificada" : "Plataforma Padrão";
+  const val = Number(state.validade)||0;
+  const ate = val ? addDays(state.data, val) : "";
+  const E = emissor;
+
+  // Cabeçalho
+  const emitLines = [E.cnpj && "CNPJ " + esc(E.cnpj), E.endereco && esc(E.endereco),
+    [E.telefone && esc(E.telefone), E.email && esc(E.email)].filter(Boolean).join(" · ")].filter(Boolean);
+  const head = `<header class="pp-head">
+    <div class="pp-emit">
+      ${E.logo ? `<img src="${E.logo}" alt="">` : ""}
+      <div><div class="nm">${esc(E.empresa || "Sua empresa")}</div><div class="dt">${emitLines.join("<br>") || "Preencha os dados da empresa ao lado."}</div></div>
+    </div>
+    <div class="pp-id">
+      <div class="k">PROPOSTA COMERCIAL</div>
+      <div class="n">${esc(state.numero || "—")}</div>
+      <div class="d">Emitida em ${fmtDate(state.data)}${ate ? `<br>Válida até ${fmtDate(ate)}` : ""}</div>
+    </div>
+  </header>`;
+
+  const title = `<div class="pp-title"><h1>Licença de Software INTELIAR™</h1><div class="sub">${platNome}</div></div>
+  <div class="pp-cli">
+    <div><div class="l">Cliente</div><div class="v">${esc(state.cliente || "—")}</div></div>
+    <div><div class="l">Projeto / Equipamento</div><div class="v">${esc(state.projeto || "—")}</div></div>
+  </div>`;
+
+  // Escopo do fornecimento (sem serviços)
+  const mods = MODULES.filter(m=>m.id!=="serv").map(m=>{
+    const gs = r.groups.filter(g=>g.mod.id===m.id && (state.listarPadrao || g.bloco.tipo!=="pad"));
+    if(!gs.length) return "";
+    const lis = gs.flatMap(g=> g.itens.map(it=> `<li>${esc(it.nome)}${g.bloco.tipo==="cus" ? '<span class="pp-tag">Customização</span>' : ""}</li>`));
+    return `<div class="pp-mod"><h3>${esc(m.nome)}</h3><ul>${lis.join("")}</ul></div>`;
+  }).join("");
+  const escopo = `<section class="pp-sec"><h2>Escopo do fornecimento</h2>
+    <p style="margin:0 0 10px">Licença do software de supervisão e controle INTELIAR™ (${isLogo ? "plataforma LOGO!, versão simplificada" : "plataforma padrão"})${mods ? ", com as funcionalidades abaixo:" : "."}</p>
+    ${mods}</section>`;
+
+  // Investimento
+  const rows = [];
+  rows.push(`<tr><td>Licença de software INTELIAR™<span class="s">${platNome}</span></td><td class="r">${brl(r.base)}</td></tr>`);
+  const cus = r.groups.filter(g=>g.bloco.tipo==="cus");
+  const srv = r.groups.filter(g=>g.bloco.tipo==="srv");
+  if(state.detalhar){
+    cus.forEach(g=>{
+      if(g.bloco.regra==="unico"){
+        rows.push(`<tr><td>Customização — ${esc(g.bloco.cat)} (${g.itens.length} ${g.itens.length===1?"sinal":"sinais"})<span class="s">${g.itens.map(it=>esc(it.nome)).join(", ")}</span></td><td class="r">${brl(g.valor)}</td></tr>`);
+      } else {
+        g.itens.forEach(it=> rows.push(`<tr><td>Customização — ${esc(it.nome)}<span class="s">${esc(g.mod.nome)} · ${esc(g.bloco.cat)}</span></td><td class="r">${brl(unitPrice(g.bloco,it))}</td></tr>`));
+      }
+    });
+    srv.forEach(g=> g.itens.forEach(it=>{
+      const p = unitPrice(g.bloco,it);
+      rows.push(`<tr><td>${esc(it.nome)}<span class="s">Serviço</span></td><td class="r">${p ? brl(p) : "Sem custo"}</td></tr>`);
+    }));
+  } else {
+    const nc = cus.reduce((s,g)=>s+g.itens.length,0), ns = srv.reduce((s,g)=>s+g.itens.length,0);
+    if(nc) rows.push(`<tr><td>Customizações (${nc} ${nc===1?"item":"itens"})</td><td class="r">${brl(r.custom)}</td></tr>`);
+    if(ns) rows.push(`<tr><td>Serviços (${ns} ${ns===1?"item":"itens"})<span class="s">${srv.flatMap(g=>g.itens.map(it=>esc(it.nome))).join(", ")}</span></td><td class="r">${brl(r.serv)}</td></tr>`);
+  }
+  if(r.descVal){
+    rows.push(`<tr class="sub"><td>Subtotal</td><td class="r">${brl(r.bruto)}</td></tr>`);
+    rows.push(`<tr class="sub"><td>Desconto (${r.descPct.toLocaleString("pt-BR")}%)</td><td class="r">− ${brl(r.descVal)}</td></tr>`);
+  }
+  rows.push(`<tr class="tot"><td>Valor total</td><td class="r">${brl(r.total)}</td></tr>`);
+  const invest = `<section class="pp-sec"><h2>Investimento</h2>
+    <table class="pp-tbl"><thead><tr><th>Descrição</th><th class="r">Valor</th></tr></thead><tbody>${rows.join("")}</tbody></table></section>`;
+
+  // Condições
+  const cond = [["Validade", val ? `${val} dias${ate ? " (até " + fmtDate(ate) + ")" : ""}` : "—"],
+    ["Pagamento", state.pagamento || "A combinar"], ["Prazo de entrega", state.prazo || "A combinar"]];
+  const conds = `<section class="pp-sec"><h2>Condições comerciais</h2><dl class="pp-cond">
+    ${cond.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}
+    ${state.obsCli && state.obsCli.trim() ? `<dt>Observações</dt><dd>${nl2br(state.obsCli.trim())}</dd>` : ""}
+  </dl></section>`;
+
+  const sign = `<div class="pp-sign">
+    <div><strong>${esc(E.contato || " ")}</strong>${esc(E.empresa || "")}</div>
+    <div><strong>De acordo</strong>${esc(state.cliente || "Cliente")} — data e assinatura</div>
+  </div>
+  <footer class="pp-foot"><span>${esc(E.empresa || "")}${state.numero ? " · Proposta " + esc(state.numero) : ""}</span><span>INTELIAR™ — licença de software</span></footer>`;
+
+  return head + title + escopo + invest + conds + sign;
+}
+function renderProposal(){ $("#paper").innerHTML = buildProposalHTML(); }
+function proposalFileBase(){
+  const s = ["Proposta", state.numero, state.cliente].filter(Boolean).join(" - ");
+  return s.replace(/[\\/:*?"<>|]+/g,"").slice(0,120) || "Proposta";
+}
+function proposalDocument(){
+  const css = $("#paper-css").textContent;
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(proposalFileBase())}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>body{margin:0;background:#eceee9;padding:24px 12px}@media print{body{background:#fff;padding:0}}${css}</style></head>
+<body><article class="paper">${buildProposalHTML()}</article></body></html>`;
+}
+function fillEmissorForm(){
+  EMISSOR_KEYS.forEach(k=>{ const el = $("#em-"+k); if(el && document.activeElement!==el) el.value = emissor[k]||""; });
+  const img = $("#em-logo-prev");
+  img.hidden = !emissor.logo; if(emissor.logo) img.src = emissor.logo; else img.removeAttribute("src");
+  $("#em-logo-rm").hidden = !emissor.logo;
+}
+function resizeLogo(file){
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onerror = ()=>reject(new Error("read"));
+    fr.onload = ()=>{
+      const img = new Image();
+      img.onerror = ()=>reject(new Error("img"));
+      img.onload = ()=>{
+        const max = {w:600, h:200};
+        const w0 = img.naturalWidth || 600, h0 = img.naturalHeight || 200;
+        const k = Math.min(1, max.w/w0, max.h/h0);
+        const c = document.createElement("canvas"); c.width = Math.round(w0*k); c.height = Math.round(h0*k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL("image/png"));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function bindProposal(){
+  // Condições
+  [["cv-validade","validade"],["cv-prazo","prazo"],["cv-pagamento","pagamento"],["cv-obs","obsCli"]].forEach(([id,k])=>{
+    const el = $("#"+id);
+    el.addEventListener("input", ()=>{ state[k] = k==="validade" ? Math.max(0, Number(el.value)||0) : el.value; saveDraft(); renderProposal(); });
+  });
+  [["cv-detalhar","detalhar"],["cv-padrao","listarPadrao"]].forEach(([id,k])=>{
+    const el = $("#"+id);
+    el.addEventListener("change", ()=>{ state[k] = el.checked; saveDraft(); renderProposal(); });
+  });
+  // Empresa
+  EMISSOR_KEYS.forEach(k=>{
+    $("#em-"+k).addEventListener("input", e=>{ emissor[k] = e.target.value; renderProposal(); $("#em-status").textContent = "Alterações não salvas."; });
+  });
+  $("#em-logo").addEventListener("change", async e=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    try{ emissor.logo = await resizeLogo(f); fillEmissorForm(); renderProposal(); $("#em-status").textContent = "Alterações não salvas."; }
+    catch(err){ toast("Não foi possível ler essa imagem — use PNG ou JPG"); }
+    e.target.value = "";
+  });
+  $("#em-logo-rm").addEventListener("click", ()=>{ emissor.logo = ""; fillEmissorForm(); renderProposal(); $("#em-status").textContent = "Alterações não salvas."; });
+  $("#b-salvar-emissor").addEventListener("click", async ()=>{
+    if(!db){ $("#em-status").textContent = "Não foi possível salvar aqui — os dados valem só nesta tela."; return; }
+    try{
+      await db.doc("config/emissor").set({...emissor, atualizadoEm:new Date().toISOString()});
+      $("#em-status").textContent = "Dados salvos.";
+      toast("Dados da empresa salvos");
+    }catch(err){
+      $("#em-status").textContent = (err && err.code==="too_large") ? "Logo muito grande — use uma imagem menor." : "Você não tem permissão para alterar os dados da empresa.";
+    }
+  });
+  // Documento
+  $("#b-pdf").hidden = !CAN_PRINT;
+  $("#pdf-hint").textContent = CAN_PRINT
+    ? "Na janela de impressão, escolha “Salvar como PDF” como destino."
+    : "Baixe o arquivo .html, abra no navegador e use Ctrl+P → “Salvar como PDF”.";
+  $("#b-pdf").addEventListener("click", ()=>{ renderProposal(); window.print(); });
+  $("#b-prop-html").addEventListener("click", ()=> download(proposalFileBase()+".html", proposalDocument()));
+  $("#b-proposta").addEventListener("click", ()=>{ $("#tab-cliente").click(); window.scrollTo({top:0}); });
 }
 
 /* ---------- Toast ---------- */
@@ -702,7 +1022,8 @@ function bindTabs(){
   document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click", ()=>{
     const v = b.dataset.view;
     document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected", x===b ? "true":"false"));
-    ["config","precos","propostas"].forEach(n=> $("#view-"+n).hidden = n!==v);
+    ["config","cliente","precos","propostas"].forEach(n=> $("#view-"+n).hidden = n!==v);
+    if(v==="cliente") renderProposal();
     try{ localStorage.setItem("inteliar-tab", v); }catch(e){}
   }));
 }
@@ -792,6 +1113,9 @@ function fillFields(){
   $("#p-numero").value = state.numero||""; $("#p-data").value = state.data||"";
   $("#p-obs").value = state.obs||""; $("#p-desc").value = state.desc||0;
   const pl = document.getElementById(state.plat==="logo" ? "pl-logo" : "pl-padrao"); if(pl) pl.checked = true;
+  $("#cv-validade").value = state.validade ?? 30; $("#cv-prazo").value = state.prazo||"";
+  $("#cv-pagamento").value = state.pagamento||""; $("#cv-obs").value = state.obsCli||"";
+  $("#cv-detalhar").checked = state.detalhar !== false; $("#cv-padrao").checked = state.listarPadrao !== false;
 }
 
 /* ---------- Capabilities ---------- */
@@ -818,6 +1142,15 @@ async function connect(){
     }
     renderPrices(); renderModules(); renderSummary();
   }, ()=>{});
+  db.doc("config/emissor").onSnapshot(s=>{
+    if(s.exists){
+      const d = s.data();
+      emissor = {logo: typeof d.logo==="string" ? d.logo : ""};
+      EMISSOR_KEYS.forEach(k=> emissor[k] = typeof d[k]==="string" ? d[k] : "");
+      fillEmissorForm();
+      if(!$("#view-cliente").hidden) renderProposal();
+    }
+  }, ()=>{});
   db.collection("propostas").orderBy("salvoEm","desc").limit(300).onSnapshot(s=>{ propostas = s.docs; renderProps(); }, ()=>{});
 }
 
@@ -828,7 +1161,7 @@ renderModules();
 renderPrices();
 renderSummary();
 renderProps();
-bindTabs(); bindConfig(); bindPrices(); bindProps();
+bindTabs(); bindConfig(); bindPrices(); bindProps(); bindProposal(); fillEmissorForm();
 try{ const t = localStorage.getItem("inteliar-tab"); if(t && t!=="config"){ const b=document.querySelector(`.tabs button[data-view="${t}"]`); if(b) b.click(); } }catch(e){}
 $("#prop-body").innerHTML = `<tr><td colspan="5" class="empty">Carregando propostas…</td></tr>`;
 connect();
