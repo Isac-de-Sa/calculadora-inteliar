@@ -15,8 +15,10 @@ Aplicação web que calcula o valor da licença de software Inteliar e gera o es
 Na aba **Proposta ao cliente** (ou no botão "Gerar proposta para o cliente"):
 1. Preencha uma vez os **dados da sua empresa** (nome, CNPJ, endereço, contato e logo) e clique em **Salvar dados da empresa**.
 2. Ajuste as **condições desta proposta**: validade, pagamento, prazo e observações.
-3. Escolha se quer **detalhar os valores por item** e **listar as funcionalidades padrão**.
-4. Clique em **Salvar em PDF / Imprimir** e escolha "Salvar como PDF" — ou baixe a proposta em .html.
+3. O **contato do cliente** (nome, telefone e e-mail) é preenchido na aba Configurar.
+   Escolha se quer **detalhar os valores por item** e **listar as funcionalidades padrão**.
+4. Se precisar, preencha **impostos** (inclusos ou acrescidos, com alíquota e base), **exclusões do escopo**, **obrigações da contratante** e **dados de faturamento** do cliente. Exclusões e obrigações podem ser salvas como texto padrão.
+5. Clique em **Salvar em PDF / Imprimir** e escolha "Salvar como PDF" — ou baixe a proposta em .html.
 
 ## Onde ficam os dados
 Preços e propostas salvas ficam no navegador de cada aparelho (não há servidor).

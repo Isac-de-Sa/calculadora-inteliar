@@ -182,6 +182,16 @@ td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)
 .pacts .btn.pri{grid-column:auto}
 .phint{font-size:12px;color:var(--muted);margin:0}
 .paper-wrap{min-width:0}
+select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:15px;color:var(--fg);width:100%;text-transform:none;letter-spacing:0;font-weight:400}
+.tx-acts{display:flex;gap:14px;margin-top:-4px}
+.imp-rows{display:flex;flex-direction:column;gap:6px}
+.imp-row{display:grid;grid-template-columns:minmax(0,1fr) 84px minmax(0,1.2fr);gap:6px;align-items:center}
+.imp-row .chk{min-width:0}
+.imp-row .chk input[type=text]{padding:5px 7px;font-size:14px;min-width:0}
+.imp-row input[type=number]{padding:6px 8px;font-size:14px;text-align:right}
+.imp-row select{padding:6px 6px;font-size:13px}
+.imp-row.off input[type=number],.imp-row.off select{opacity:.45}
+.imp-head{display:grid;grid-template-columns:minmax(0,1fr) 84px minmax(0,1.2fr);gap:6px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 </style>
 <style>body{margin:0}[hidden]{display:none!important}</style>
 </head>
@@ -228,6 +238,9 @@ td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)
 .pp-cond{display:grid;grid-template-columns:160px 1fr;gap:6px 14px;margin:0}
 .pp-cond dt{font-weight:700;color:var(--p-muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding-top:1px}
 .pp-cond dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.pp-list{margin:0;padding-left:18px}
+.pp-list li{margin:2px 0;break-inside:avoid}
+.pp-note{margin:8px 0 0;font-size:12px;color:var(--p-muted)}
 .pp-sign{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:44px;break-inside:avoid}
 .pp-sign div{border-top:1px solid var(--p-ink);padding-top:6px;font-size:12px;color:var(--p-muted)}
 .pp-sign strong{display:block;color:var(--p-ink);font-size:13px}
@@ -280,6 +293,9 @@ td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)
       <label class="f">Projeto / Equipamento<input type="text" id="p-projeto" placeholder="Ex.: Coletor de pó — linha 3"></label>
       <label class="f">Nº da proposta<input type="text" id="p-numero" placeholder="Ex.: PRP-2026-041"></label>
       <label class="f">Data<input type="date" id="p-data"></label>
+      <label class="f">Contato do cliente<input type="text" id="p-cli-contato" placeholder="Nome"></label>
+      <label class="f">Telefone do contato<input type="text" id="p-cli-tel" placeholder="(11) 90000-0000"></label>
+      <label class="f">E-mail do contato<input type="text" id="p-cli-email" placeholder="nome@cliente.com.br"></label>
       <label class="f" style="grid-column:1/-1">Observações para o desenvolvedor<textarea id="p-obs" placeholder="Detalhes técnicos, prazos, particularidades do cliente…"></textarea></label>
     </div>
 
@@ -335,6 +351,37 @@ td input[type=number]{max-width:150px;text-align:right;font-family:var(--f-mono)
           <label class="f">Observações ao cliente<textarea id="cv-obs" placeholder="Garantia, exclusões, premissas…"></textarea></label>
           <label class="chk" for="cv-detalhar"><input type="checkbox" id="cv-detalhar"> Detalhar valores por item</label>
           <label class="chk" for="cv-padrao"><input type="checkbox" id="cv-padrao"> Listar funcionalidades padrão inclusas</label>
+        </div>
+
+        <div class="panel">
+          <h2>Impostos</h2>
+          <label class="f">Na proposta<select id="imp-modo">
+            <option value="nao">Não mencionar impostos</option>
+            <option value="inclusos">Impostos inclusos nos valores</option>
+            <option value="acrescidos">Impostos não inclusos — acrescidos ao valor</option>
+          </select></label>
+          <div class="imp-rows" id="imp-rows"></div>
+          <p class="phint">Cálculo simplificado: alíquota × base de cálculo (já com desconto). Confirme as alíquotas com a contabilidade.</p>
+        </div>
+
+        <div class="panel">
+          <h2>Exclusões e obrigações</h2>
+          <p class="lead">Um item por linha. Salve um texto padrão para reaproveitar nas próximas propostas.</p>
+          <label class="f">Exclusões do escopo de fornecimento<textarea id="cv-exclusoes" rows="5" placeholder="Ex.: Infraestrutura elétrica e de rede&#10;Fornecimento de hardware não listado nesta proposta"></textarea></label>
+          <div class="tx-acts"><button class="link" type="button" data-txpad="exclusoes">Inserir texto padrão</button><button class="link" type="button" data-txsave="exclusoes">Salvar como padrão</button></div>
+          <label class="f">Obrigações da contratante<textarea id="cv-obrigacoes" rows="5" placeholder="Ex.: Disponibilizar acesso remoto à rede do CLP&#10;Indicar um responsável técnico durante o comissionamento"></textarea></label>
+          <div class="tx-acts"><button class="link" type="button" data-txpad="obrigacoes">Inserir texto padrão</button><button class="link" type="button" data-txsave="obrigacoes">Salvar como padrão</button></div>
+        </div>
+
+        <div class="panel">
+          <h2>Dados de faturamento do cliente</h2>
+          <label class="f">Razão social<input type="text" id="ft-razao" placeholder="Razão social para a nota fiscal"></label>
+          <div class="frow">
+            <label class="f">CNPJ<input type="text" id="ft-cnpj" placeholder="00.000.000/0000-00"></label>
+            <label class="f">Inscrição estadual<input type="text" id="ft-ie" placeholder="Isento ou nº"></label>
+          </div>
+          <label class="f">Endereço de faturamento<input type="text" id="ft-endereco" placeholder="Rua, nº — Bairro — Cidade/UF — CEP"></label>
+          <label class="f">E-mail para nota fiscal<input type="text" id="ft-email" placeholder="fiscal@cliente.com.br"></label>
         </div>
 
         <div class="panel">
@@ -562,7 +609,24 @@ let propostas = [];
 
 function freshState(){
   return {plat:"padrao", sel:{}, extras:{}, desc:0, cliente:"", projeto:"", numero:"", data:new Date().toISOString().slice(0,10), obs:"",
-    validade:30, pagamento:"A combinar", prazo:"A combinar", obsCli:"", detalhar:true, listarPadrao:true};
+    validade:30, pagamento:"A combinar", prazo:"A combinar", obsCli:"", detalhar:true, listarPadrao:true,
+    cliContato:"", cliTelefone:"", cliEmail:"", exclusoes:"", obrigacoes:"",
+    impModo:"nao", impostos:defaultImpostos(),
+    fatRazao:"", fatCnpj:"", fatIE:"", fatEndereco:"", fatEmail:""};
+}
+function defaultImpostos(){
+  return [
+    {k:"ICMS", nome:"ICMS", on:false, aliq:"", base:"sw"},
+    {k:"IPI", nome:"IPI", on:false, aliq:"", base:"sw"},
+    {k:"ISS", nome:"ISS", on:false, aliq:"", base:"srv"},
+    {k:"PIS", nome:"PIS", on:false, aliq:"", base:"total"},
+    {k:"COFINS", nome:"COFINS", on:false, aliq:"", base:"total"},
+    {k:"OUTRO", nome:"Outro", on:false, aliq:"", base:"total"}
+  ];
+}
+function normalizeState(){
+  if(!Array.isArray(state.impostos) || !state.impostos.length) state.impostos = defaultImpostos();
+  if(!["nao","inclusos","acrescidos"].includes(state.impModo)) state.impModo = "nao";
 }
 function loadDraft(){
   try{ const r = localStorage.getItem(DRAFT_KEY); if(r){ const d = JSON.parse(r); if(d && d.sel) state = Object.assign(freshState(), d); } }catch(e){}
@@ -572,6 +636,8 @@ function saveDraft(){
   clearTimeout(draftTimer);
   draftTimer = setTimeout(()=>{ try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(state)); }catch(e){} }, 300);
 }
+// Grava imediatamente ao fechar/recarregar a página
+window.addEventListener("pagehide", ()=>{ clearTimeout(draftTimer); try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(state)); }catch(e){} });
 
 const $ = s => document.querySelector(s);
 const brl = v => (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -670,6 +736,11 @@ function renderSummary(){
   lines.push(`<div class="ln"><span>Customizações</span><span>${brl(r.custom)}</span></div>`);
   lines.push(`<div class="ln"><span>Serviços</span><span>${brl(r.serv)}</span></div>`);
   if(r.descVal) lines.push(`<div class="ln dis"><span>Desconto (${r.descPct.toLocaleString("pt-BR")}%)</span><span>− ${brl(r.descVal)}</span></div>`);
+  const imp = calcImpostos(r);
+  if(state.impModo==="acrescidos" && imp.total){
+    lines.push(`<div class="ln"><span>Impostos (acrescidos)</span><span>+ ${brl(imp.total)}</span></div>`);
+    lines.push(`<div class="ln"><span><strong>Total com impostos</strong></span><span><strong>${brl(r.total + imp.total)}</strong></span></div>`);
+  }
   $("#s-lines").innerHTML = lines.join("");
   MODULES.forEach(m=>{
     const n = r.groups.filter(g=>g.mod.id===m.id).reduce((s,g)=>s+g.itens.length,0);
@@ -689,6 +760,8 @@ function buildScope(){
   L.push("");
   L.push("Cliente:   " + (state.cliente||"—"));
   L.push("Projeto:   " + (state.projeto||"—"));
+  const ct = [state.cliContato, state.cliTelefone, state.cliEmail].map(x=>(x||"").trim()).filter(Boolean).join(" · ");
+  if(ct) L.push("Contato:   " + ct);
   L.push("Proposta:  " + (state.numero||"—"));
   L.push("Data:      " + fmtDate(state.data));
   L.push("Plataforma: " + (state.plat==="logo" ? "LOGO! (versão simplificada)" : "Padrão"));
@@ -744,6 +817,20 @@ const EMISSOR_KEYS = ["empresa","cnpj","telefone","endereco","contato","email"];
 let emissor = {empresa:"", cnpj:"", telefone:"", endereco:"", contato:"", email:"", logo:""};
 const CAN_PRINT = !!window.INTELIAR_LOCAL;   // a impressão funciona no arquivo local / GitHub Pages; no visualizador do claude.ai não
 const nl2br = s => esc(s).replace(/\n/g,"<br>");
+const TX_KEYS = ["exclusoesPadrao","obrigacoesPadrao"];
+const BASE_NOME = {total:"valor total", sw:"software", srv:"serviços"};
+const pctFmt = n => Number(n).toLocaleString("pt-BR",{maximumFractionDigits:2}) + "%";
+function calcImpostos(r){
+  const f = 1 - (r.descPct||0)/100;
+  const bases = {total:r.total, sw:(r.base + r.custom)*f, srv:r.serv*f};
+  const list = (state.impostos||[]).filter(t=>t.on && Number(t.aliq)>0).map(t=>{
+    const aliq = Number(t.aliq);
+    const base = bases[t.base] ?? r.total;
+    return {nome:(t.nome||t.k||"Imposto").trim() || "Imposto", aliq, baseK:t.base, valor:Math.round(base*aliq)/100};
+  }).filter(t=>t.valor>0);
+  return {list, total:list.reduce((s,t)=>s+t.valor,0)};
+}
+const linesOf = s => String(s||"").split(/\r?\n/).map(x=>x.replace(/^\s*[-•*]\s*/,"").trim()).filter(Boolean);
 function addDays(iso, n){
   if(!iso) return "";
   const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + (Number(n)||0));
@@ -772,10 +859,12 @@ function buildProposalHTML(){
     </div>
   </header>`;
 
+  const cliContatoLinha = [state.cliContato, state.cliTelefone, state.cliEmail].map(x=>(x||"").trim()).filter(Boolean).map(esc).join(" · ");
   const title = `<div class="pp-title"><h1>Licença de Software INTELIAR™</h1><div class="sub">${platNome}</div></div>
   <div class="pp-cli">
     <div><div class="l">Cliente</div><div class="v">${esc(state.cliente || "—")}</div></div>
     <div><div class="l">Projeto / Equipamento</div><div class="v">${esc(state.projeto || "—")}</div></div>
+    ${cliContatoLinha ? `<div style="grid-column:1/-1;margin-top:4px"><div class="l">Contato</div><div class="v">${cliContatoLinha}</div></div>` : ""}
   </div>`;
 
   // Escopo do fornecimento (sem serviços)
@@ -788,6 +877,14 @@ function buildProposalHTML(){
   const escopo = `<section class="pp-sec"><h2>Escopo do fornecimento</h2>
     <p style="margin:0 0 10px">Licença do software de supervisão e controle INTELIAR™ (${isLogo ? "plataforma LOGO!, versão simplificada" : "plataforma padrão"})${mods ? ", com as funcionalidades abaixo:" : "."}</p>
     ${mods}</section>`;
+
+  // Exclusões e obrigações
+  const listSec = (titulo, txt) => {
+    const it = linesOf(txt);
+    return it.length ? `<section class="pp-sec"><h2>${titulo}</h2><ul class="pp-list">${it.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>` : "";
+  };
+  const exclusoes = listSec("Exclusões do escopo de fornecimento", state.exclusoes);
+  const obrigacoes = listSec("Obrigações da contratante", state.obrigacoes);
 
   // Investimento
   const rows = [];
@@ -815,9 +912,22 @@ function buildProposalHTML(){
     rows.push(`<tr class="sub"><td>Subtotal</td><td class="r">${brl(r.bruto)}</td></tr>`);
     rows.push(`<tr class="sub"><td>Desconto (${r.descPct.toLocaleString("pt-BR")}%)</td><td class="r">− ${brl(r.descVal)}</td></tr>`);
   }
-  rows.push(`<tr class="tot"><td>Valor total</td><td class="r">${brl(r.total)}</td></tr>`);
+  const imp = calcImpostos(r);
+  const impDesc = t => `${esc(t.nome)} (${pctFmt(t.aliq)} sobre ${BASE_NOME[t.baseK] || "valor total"})`;
+  let impNote = "";
+  if(state.impModo==="acrescidos" && imp.list.length){
+    rows.push(`<tr class="sub"><td>Valor sem impostos</td><td class="r">${brl(r.total)}</td></tr>`);
+    imp.list.forEach(t=> rows.push(`<tr class="sub"><td>${impDesc(t)}</td><td class="r">+ ${brl(t.valor)}</td></tr>`));
+    rows.push(`<tr class="tot"><td>Valor total com impostos</td><td class="r">${brl(r.total + imp.total)}</td></tr>`);
+    impNote = "Impostos calculados sobre os valores desta proposta, conforme as alíquotas indicadas.";
+  } else {
+    rows.push(`<tr class="tot"><td>Valor total</td><td class="r">${brl(r.total)}</td></tr>`);
+    if(state.impModo==="acrescidos") impNote = "Valores sem impostos. Os impostos serão acrescidos conforme a legislação vigente.";
+    if(state.impModo==="inclusos") impNote = "Impostos inclusos nos valores acima" + (imp.list.length ? ": " + imp.list.map(impDesc).join("; ") + "." : ".");
+  }
   const invest = `<section class="pp-sec"><h2>Investimento</h2>
-    <table class="pp-tbl"><thead><tr><th>Descrição</th><th class="r">Valor</th></tr></thead><tbody>${rows.join("")}</tbody></table></section>`;
+    <table class="pp-tbl"><thead><tr><th>Descrição</th><th class="r">Valor</th></tr></thead><tbody>${rows.join("")}</tbody></table>
+    ${impNote ? `<p class="pp-note">${impNote}</p>` : ""}</section>`;
 
   // Condições
   const cond = [["Validade", val ? `${val} dias${ate ? " (até " + fmtDate(ate) + ")" : ""}` : "—"],
@@ -831,9 +941,15 @@ function buildProposalHTML(){
     <div><strong>${esc(E.contato || " ")}</strong>${esc(E.empresa || "")}</div>
     <div><strong>De acordo</strong>${esc(state.cliente || "Cliente")} — data e assinatura</div>
   </div>
-  <footer class="pp-foot"><span>${esc(E.empresa || "")}${state.numero ? " · Proposta " + esc(state.numero) : ""}</span><span>INTELIAR™ — licença de software</span></footer>`;
+  <footer class="pp-foot"><span>${[E.empresa && esc(E.empresa), state.numero && "Proposta " + esc(state.numero)].filter(Boolean).join(" · ")}</span><span>INTELIAR™ — licença de software</span></footer>`;
 
-  return head + title + escopo + invest + conds + sign;
+  // Faturamento
+  const fat = [["Razão social", state.fatRazao], ["CNPJ", state.fatCnpj], ["Inscrição estadual", state.fatIE],
+    ["Endereço", state.fatEndereco], ["E-mail para NF", state.fatEmail]].filter(([,v])=>v && String(v).trim());
+  const fatur = fat.length ? `<section class="pp-sec"><h2>Dados de faturamento</h2><dl class="pp-cond">
+    ${fat.map(([k,v])=>`<dt>${k}</dt><dd>${esc(String(v).trim())}</dd>`).join("")}</dl></section>` : "";
+
+  return head + title + escopo + exclusoes + obrigacoes + invest + conds + fatur + sign;
 }
 function renderProposal(){ $("#paper").innerHTML = buildProposalHTML(); }
 function proposalFileBase(){
@@ -874,12 +990,66 @@ function resizeLogo(file){
     fr.readAsDataURL(file);
   });
 }
+function syncTxLinks(){ document.querySelectorAll("[data-txpad]").forEach(b=> b.hidden = !emissor[b.dataset.txpad+"Padrao"]); }
+function renderImpRows(){
+  const host = $("#imp-rows");
+  host.hidden = state.impModo==="nao";
+  const opt = (v,l,cur) => `<option value="${v}"${cur===v?" selected":""}>${l}</option>`;
+  host.innerHTML = `<div class="imp-head"><span>Imposto</span><span style="text-align:right">Alíquota %</span><span>Incide sobre</span></div>` +
+    state.impostos.map((t,i)=>`<div class="imp-row${t.on?"":" off"}">
+      <label class="chk" for="imp-on-${i}"><input type="checkbox" id="imp-on-${i}" data-i="${i}" data-f="on"${t.on?" checked":""}>
+        ${t.k==="OUTRO" ? `<input type="text" id="imp-nome-${i}" data-i="${i}" data-f="nome" value="${esc(t.nome)}" aria-label="Nome do outro imposto">` : esc(t.nome)}</label>
+      <input type="number" id="imp-aliq-${i}" data-i="${i}" data-f="aliq" min="0" max="100" step="0.01" value="${esc(t.aliq)}" placeholder="0,00" aria-label="Alíquota de ${esc(t.nome)}">
+      <select id="imp-base-${i}" data-i="${i}" data-f="base" aria-label="Base de cálculo de ${esc(t.nome)}">
+        ${opt("total","Valor total",t.base)}${opt("sw","Software (licença + custom.)",t.base)}${opt("srv","Serviços",t.base)}
+      </select>
+    </div>`).join("");
+}
 function bindProposal(){
   // Condições
   [["cv-validade","validade"],["cv-prazo","prazo"],["cv-pagamento","pagamento"],["cv-obs","obsCli"]].forEach(([id,k])=>{
     const el = $("#"+id);
     el.addEventListener("input", ()=>{ state[k] = k==="validade" ? Math.max(0, Number(el.value)||0) : el.value; saveDraft(); renderProposal(); });
   });
+  [["cv-exclusoes","exclusoes"],["cv-obrigacoes","obrigacoes"],["ft-razao","fatRazao"],["ft-cnpj","fatCnpj"],
+   ["ft-ie","fatIE"],["ft-endereco","fatEndereco"],["ft-email","fatEmail"]].forEach(([id,k])=>{
+    const el = $("#"+id);
+    el.addEventListener("input", ()=>{ state[k] = el.value; saveDraft(); renderProposal(); });
+  });
+  // Impostos
+  $("#imp-modo").addEventListener("change", e=>{ state.impModo = e.target.value; saveDraft(); renderImpRows(); renderSummary(); renderProposal(); });
+  const impHost = $("#imp-rows");
+  const onImp = e=>{
+    const t = e.target, i = Number(t.dataset.i), f = t.dataset.f;
+    if(!f || !state.impostos[i]) return;
+    const row = state.impostos[i];
+    if(f==="on") row.on = t.checked;
+    else if(f==="aliq"){
+      row.aliq = t.value;
+      if(Number(t.value)>0 && !row.on){ row.on = true; const c = $("#imp-on-"+i); if(c) c.checked = true; }
+    }
+    else row[f] = t.value;
+    const el = t.closest(".imp-row"); if(el) el.classList.toggle("off", !row.on);
+    saveDraft(); renderSummary(); renderProposal();
+  };
+  impHost.addEventListener("input", onImp);
+  impHost.addEventListener("change", e=>{ if(e.target.dataset.f==="on" || e.target.dataset.f==="base") onImp(e); });
+  // Textos padrão (exclusões / obrigações)
+  document.querySelectorAll("[data-txpad]").forEach(b=>b.addEventListener("click", ()=>{
+    const k = b.dataset.txpad, pad = emissor[k+"Padrao"] || "";
+    if(!pad) return;
+    const cur = state[k] || "";
+    state[k] = cur.trim() ? cur.replace(/\s+$/,"") + "\n" + pad : pad;
+    $("#cv-"+k).value = state[k]; saveDraft(); renderProposal();
+  }));
+  document.querySelectorAll("[data-txsave]").forEach(b=>b.addEventListener("click", async ()=>{
+    const k = b.dataset.txsave;
+    if(!(state[k]||"").trim()){ toast("Escreva o texto antes de salvar como padrão"); return; }
+    emissor[k+"Padrao"] = state[k]; syncTxLinks();
+    if(!db){ toast("Padrão válido só nesta tela"); return; }
+    try{ await db.doc("config/emissor").set({...emissor, atualizadoEm:new Date().toISOString()}); toast("Texto padrão salvo"); }
+    catch(err){ toast("Não foi possível salvar o texto padrão"); }
+  }));
   [["cv-detalhar","detalhar"],["cv-padrao","listarPadrao"]].forEach(([id,k])=>{
     const el = $("#"+id);
     el.addEventListener("change", ()=>{ state[k] = el.checked; saveDraft(); renderProposal(); });
@@ -950,7 +1120,7 @@ function bindConfig(){
   host.addEventListener("keydown", e=>{
     if(e.key==="Enter" && e.target.id && e.target.id.startsWith("add-")){ e.preventDefault(); addExtra(e.target.id.slice(4)); }
   });
-  [["p-cliente","cliente"],["p-projeto","projeto"],["p-numero","numero"],["p-data","data"],["p-obs","obs"],["p-desc","desc"]].forEach(([id,k])=>{
+  [["p-cli-contato","cliContato"],["p-cli-tel","cliTelefone"],["p-cli-email","cliEmail"],["p-cliente","cliente"],["p-projeto","projeto"],["p-numero","numero"],["p-data","data"],["p-obs","obs"],["p-desc","desc"]].forEach(([id,k])=>{
     const el = $("#"+id);
     el.addEventListener("input", ()=>{ state[k] = k==="desc" ? Number(el.value)||0 : el.value; saveDraft(); renderSummary(); });
   });
@@ -1109,6 +1279,7 @@ async function saveProposal(){
 }
 
 function fillFields(){
+  normalizeState();
   $("#p-cliente").value = state.cliente||""; $("#p-projeto").value = state.projeto||"";
   $("#p-numero").value = state.numero||""; $("#p-data").value = state.data||"";
   $("#p-obs").value = state.obs||""; $("#p-desc").value = state.desc||0;
@@ -1116,6 +1287,12 @@ function fillFields(){
   $("#cv-validade").value = state.validade ?? 30; $("#cv-prazo").value = state.prazo||"";
   $("#cv-pagamento").value = state.pagamento||""; $("#cv-obs").value = state.obsCli||"";
   $("#cv-detalhar").checked = state.detalhar !== false; $("#cv-padrao").checked = state.listarPadrao !== false;
+  $("#p-cli-contato").value = state.cliContato||""; $("#p-cli-tel").value = state.cliTelefone||""; $("#p-cli-email").value = state.cliEmail||"";
+  $("#cv-exclusoes").value = state.exclusoes||""; $("#cv-obrigacoes").value = state.obrigacoes||"";
+  $("#ft-razao").value = state.fatRazao||""; $("#ft-cnpj").value = state.fatCnpj||""; $("#ft-ie").value = state.fatIE||"";
+  $("#ft-endereco").value = state.fatEndereco||""; $("#ft-email").value = state.fatEmail||"";
+  $("#imp-modo").value = state.impModo || "nao";
+  renderImpRows();
 }
 
 /* ---------- Capabilities ---------- */
@@ -1146,8 +1323,8 @@ async function connect(){
     if(s.exists){
       const d = s.data();
       emissor = {logo: typeof d.logo==="string" ? d.logo : ""};
-      EMISSOR_KEYS.forEach(k=> emissor[k] = typeof d[k]==="string" ? d[k] : "");
-      fillEmissorForm();
+      EMISSOR_KEYS.concat(TX_KEYS).forEach(k=> emissor[k] = typeof d[k]==="string" ? d[k] : "");
+      fillEmissorForm(); syncTxLinks();
       if(!$("#view-cliente").hidden) renderProposal();
     }
   }, ()=>{});
@@ -1161,7 +1338,7 @@ renderModules();
 renderPrices();
 renderSummary();
 renderProps();
-bindTabs(); bindConfig(); bindPrices(); bindProps(); bindProposal(); fillEmissorForm();
+bindTabs(); bindConfig(); bindPrices(); bindProps(); bindProposal(); fillEmissorForm(); syncTxLinks();
 try{ const t = localStorage.getItem("inteliar-tab"); if(t && t!=="config"){ const b=document.querySelector(`.tabs button[data-view="${t}"]`); if(b) b.click(); } }catch(e){}
 $("#prop-body").innerHTML = `<tr><td colspan="5" class="empty">Carregando propostas…</td></tr>`;
 connect();
