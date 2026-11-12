@@ -198,7 +198,8 @@ select{background:var(--bg);border:1px solid var(--line);border-radius:8px;paddi
 <body>
 <style id="paper-css">
 /* Folha da proposta: sempre papel branco (documento para imprimir/PDF), nos dois temas */
-@page{size:A4;margin:14mm}
+@page{size:A4;margin:14mm 14mm 16mm;
+  @bottom-right{content:"Página " counter(page) " de " counter(pages);font-family:"Barlow",Arial,sans-serif;font-size:8.5pt;color:#5d6b55;vertical-align:middle}}
 .paper{--p-ink:#1d2618;--p-muted:#5d6b55;--p-line:#d3dccb;--p-brand:#4f8a24;--p-brand-soft:#eef5e6;
   background:#ffffff;color:var(--p-ink);max-width:794px;margin:0 auto;padding:44px 48px;border-radius:4px;box-shadow:0 2px 14px rgba(0,0,0,.14);
   font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13.5px;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -390,7 +391,7 @@ select{background:var(--bg);border:1px solid var(--line);border-radius:8px;paddi
             <button class="btn pri" id="b-pdf" type="button">Salvar em PDF / Imprimir</button>
             <button class="btn" id="b-prop-html" type="button">Baixar proposta (.html)</button>
           </div>
-          <p class="phint" id="pdf-hint">Na janela de impressão, escolha “Salvar como PDF” como destino.</p>
+          <p class="phint" id="pdf-hint"></p>
         </div>
 
         <div class="panel">
@@ -1078,7 +1079,7 @@ function bindProposal(){
   // Documento
   $("#b-pdf").hidden = !CAN_PRINT;
   $("#pdf-hint").textContent = CAN_PRINT
-    ? "Na janela de impressão, escolha “Salvar como PDF” como destino."
+    ? "Na janela de impressão, escolha “Salvar como PDF”. Para tirar o endereço e a data do navegador, abra “Mais configurações” e desmarque “Cabeçalhos e rodapés” — o navegador lembra essa escolha."
     : "Baixe o arquivo .html, abra no navegador e use Ctrl+P → “Salvar como PDF”.";
   $("#b-pdf").addEventListener("click", ()=>{ renderProposal(); window.print(); });
   $("#b-prop-html").addEventListener("click", ()=> download(proposalFileBase()+".html", proposalDocument()));
